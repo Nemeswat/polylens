@@ -5,11 +5,12 @@ import Abi from '~/app/utils/dispatcher.json';
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { type CHAIN, CHAIN_CONFIGS } from "~/app/utils/chains/configs";
 import { Packet } from "~/app/utils/types/packet";
+import { currentUser } from "@clerk/nextjs";
 
 export const channelRouter = createTRPCRouter({
   search: publicProcedure
-    .input(z.object({channelId: z.string(), chain: z.string(), clientType: z.enum(["sim", "proof"])}))
-    .mutation(async ({ctx, input: {channelId, chain, clientType}}) => {
+    .input(z.object({ channelId: z.string(), chain: z.string(), clientType: z.enum(["sim", "proof"]) }))
+    .mutation(async ({ ctx, input: { channelId, chain, clientType } }) => {
       const chainId = chain as CHAIN;
       const dispatcherAddress = clientType == "sim" ? CHAIN_CONFIGS[chainId].simDispatcher : CHAIN_CONFIGS[chainId].proofDispatcher;
       const provider = new JsonRpcProvider(CHAIN_CONFIGS[chainId].rpc, CHAIN_CONFIGS[chainId].id);
@@ -32,7 +33,7 @@ export const channelRouter = createTRPCRouter({
       }
 
       async function processSendLog(sendEvent: ethers.EventLog) {
-        const [srcPortAddress, srcChannelId, , sequence, , ] = sendEvent.args;
+        const [srcPortAddress, srcChannelId, , sequence, ,] = sendEvent.args;
 
         const key = `${srcPortAddress}-${ethers.decodeBytes32String(srcChannelId as string)}-${sequence}`;
         const srcBlock = await provider.getBlock(sendEvent.blockNumber);
@@ -75,4 +76,59 @@ export const channelRouter = createTRPCRouter({
       return response;
     }),
 
+});
+export const alertRouter = createTRPCRouter({
+  add: publicProcedure
+    .input(z.object({ channelId: z.string(), chain: z.string(), clientType: z.enum(["sim", "proof"]), threshold: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const { channelId, chain, clientType, threshold } = input;
+      const user = await currentUser();
+
+      if (!user) {
+        throw new Error("User must be signed in to add an alert");
+      }
+
+
+      const userEmail = user.emailAddresses.find((email) => email.id == user.primaryEmailAddressId)?.emailAddress;
+
+      if (!userEmail) {
+        throw new Error("User must be signed in to add an alert");
+      }
+
+      return ctx.db.alert.create({
+        data: {
+          channelId,
+          chain,
+          clientType,
+          userEmail,
+          threshold,
+        },
+      });
+    }),
+  remove: publicProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(({ ctx, input }) => {
+      return ctx.db.alert.delete({
+        where: {
+          id: input.id,
+        },
+      });
+    }),
+
+  getAll: publicProcedure.query(async({ ctx }) => {
+    const user = await currentUser();
+
+    if (!user) {
+      throw new Error("User must be signed in to add an alert");
+    }
+
+
+    const userEmail = user.emailAddresses.find((email) => email.id == user.primaryEmailAddressId)?.emailAddress;
+
+    if (!userEmail) {
+      throw new Error("User must be signed in to add an alert");
+    }
+
+    return ctx.db.alert.findMany({where: {userEmail: userEmail}});
+  })
 });

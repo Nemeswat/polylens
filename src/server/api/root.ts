@@ -1,4 +1,4 @@
-import { channelRouter as channelRouter } from "~/server/api/routers/post";
+import { alertRouter, channelRouter } from "~/server/api/routers/channel";
 import { createTRPCRouter } from "~/server/api/trpc";
 
 /**
@@ -8,6 +8,7 @@ import { createTRPCRouter } from "~/server/api/trpc";
  */
 export const appRouter = createTRPCRouter({
   channel: channelRouter,
+  alert: alertRouter,
 });
 
 // export type definition of API
