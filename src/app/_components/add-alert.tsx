@@ -4,29 +4,43 @@ import { useState, useEffect } from 'react';
 import { api } from '~/trpc/react';
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
+import { useForm } from "react-hook-form"
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod"
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Button } from "@/components/ui/button";
+import { ReloadIcon } from '@radix-ui/react-icons';
+import { Input } from "@/components/ui/input";
+
+
+const formSchema = z.object({
+  channelId: z.string().min(1),
+  clientType: z.enum(["sim", "proof"]),
+  chain: z.enum(["base", "optimism"]),
+  threshold: z.number().min(1),
+});
 
 export default function AddAlert() {
   const router = useRouter();
 
-  const [channelId, setChannelId] = useState('');
-  const [clientType, setClientType] = useState<"sim" | "proof">('sim'); // default value
-  const [chain, setChain] = useState('base'); // default value
   const [threshold, setThreshold] = useState<number>(120); // Set initial default for 'sim'
-  const {isLoaded, isSignedIn, user} = useUser();
-
-// Update threshold based on clientType
-  useEffect(() => {
-    if (clientType === 'sim') {
-      setThreshold(120);
-    } else if (clientType === 'proof') {
-      setThreshold(4000);
-    }
-  }, [clientType]); // This effect depends on clientType
-
+  const { isLoaded, isSignedIn, user } = useUser();
 
   const addAlertMutation = api.alert.add.useMutation({
     onSuccess: (res) => {
+      console.log("Alert added successfully!")
       router.refresh();
+    },
+  });
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      channelId: '',
+      clientType: 'sim',
+      chain: 'base',
+      threshold: 120,
     },
   });
 
@@ -35,85 +49,125 @@ export default function AddAlert() {
     return null;
   }
 
-  const userEmail = user.emailAddresses.find((email) => email.id == user.primaryEmailAddressId)?.emailAddress;
+
+
+  function onSubmit(values: z.infer<typeof formSchema>) {
+    addAlertMutation.mutate(values);
+  }
+
 
   return (
     <>
-      <form onSubmit={(e) => {
-        e.preventDefault();
-        addAlertMutation.mutate({
-          channelId,
-          clientType,
-          chain,
-          threshold,
-        });
-
-      }}>
-        <input
-          type="text"
-          placeholder="Channel ID"
-          value={channelId}
-          onChange={(e) => setChannelId(e.target.value)}
-          className="w-full rounded-full px-4 py-2 text-black"
-
-        />
-        <div>
-          <span>Client type: </span>
-          <label>
-            <input
-              type="radio"
-              value="proof"
-              checked={clientType === "proof"}
-              onChange={() => setClientType("proof")}
-            /> Proof
-          </label>
-          <label>
-            <input
-              type="radio"
-              value="sim"
-              checked={clientType === "sim"}
-              onChange={() => setClientType("sim")}
-            /> Sim
-          </label>
-        </div>
-        <div>
-          <span>Chain: </span>
-          <label>
-            <input
-              type="radio"
-              value="base"
-              checked={chain === "base"}
-              onChange={() => setChain("base")}
-            /> Base
-          </label>
-          <label>
-            <input
-              type="radio"
-              value="optimism"
-              checked={chain === "optimism"}
-              onChange={() => setChain("optimism")}
-            /> Optimism
-          </label>
-        </div>
-        <div>
-              <label htmlFor="thresholdInput" className="block text-sm font-medium text-white">Threshold (in seconds)</label>
-              <input
-                id="thresholdInput"
-                type="number"
-                placeholder="Threshold"
-                value={threshold}
-                onChange={(e) => setThreshold(parseInt(e.target.value))}
-                className="w-full rounded-full px-4 py-2 text-black"
-              />
-            </div>
-        <button
-          type="submit"
-          disabled={addAlertMutation.isLoading}
-          className="rounded-full bg-white/10 px-10 py-3 font-semibold transition hover:bg-white/20"
-        >
-          {addAlertMutation.isLoading ? "Adding" : "Add Alert"}
-        </button>
-      </form>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="w-2/3 space-y-6">
+          <FormField
+            control={form.control}
+            name="clientType"
+            render={({ field }) => (
+              <FormItem className="space-y-3">
+                <FormLabel>Client Type</FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    className="flex row space-y-1"
+                  >
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="proof" />
+                      </FormControl>
+                      <FormLabel className="font-normal">
+                        Proof
+                      </FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="sim" />
+                      </FormControl>
+                      <FormLabel className="font-normal">
+                        Sim
+                      </FormLabel>
+                    </FormItem>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="chain"
+            render={({ field }) => (
+              <FormItem className="space-y-3">
+                <FormLabel>Chain</FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    className="flex flex-row space-y-1"
+                  >
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="base" />
+                      </FormControl>
+                      <FormLabel className="font-normal">
+                        Base
+                      </FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="optimism" />
+                      </FormControl>
+                      <FormLabel className="font-normal">
+                        Optimism
+                      </FormLabel>
+                    </FormItem>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="threshold"
+            render={({ field }) => (
+              <FormItem className="space-y-3">
+                <FormLabel>Threshold (in seconds)</FormLabel>
+                <FormControl>
+                  <Input
+                    id="thresholdInput"
+                    type="number"
+                    placeholder="Threshold"
+                    {...field}
+                    className="w-3/4 px-4 py-2"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="channelId"
+            render={({ field }) => (
+              <FormItem className="space-y-3">
+                <FormLabel>Channel Id</FormLabel>
+                <FormControl>
+                  <Input placeholder="Channel Id" {...field} className="w-3/4" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <Button type="submit" disabled={addAlertMutation.isLoading}>
+            {addAlertMutation.isLoading && (
+              <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
+            )}
+            {addAlertMutation.isLoading ? "Adding" : "Add Alert"}
+          </Button>
+        </form>
+      </Form>
       {addAlertMutation.isError && <p>Error adding alert.</p>}
       {addAlertMutation.isSuccess && <p>Alert added successfully!</p>}
     </>
