@@ -94,7 +94,6 @@ export default function AddAlert() {
               onChange={() => setChain("optimism")}
             /> Optimism
           </label>
-          {/* Add other chain options as needed */}
         </div>
         <div>
               <label htmlFor="thresholdInput" className="block text-sm font-medium text-white">Threshold (in seconds)</label>
