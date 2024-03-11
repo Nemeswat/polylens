@@ -1,5 +1,6 @@
 'use client';
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api } from "~/trpc/react";
@@ -116,7 +117,7 @@ export function AnalyseChannel() {
           className="rounded-full bg-white/10 px-10 py-3 font-semibold transition hover:bg-white/20"
           disabled={searchChannel.isLoading}
         >
-           {searchChannel.isLoading ? "Analysing..." : "Analyse"}
+          {searchChannel.isLoading ? "Analysing..." : "Analyse"}
         </button>
       </form>
       <div className="mt-4">
@@ -131,7 +132,13 @@ export function AnalyseChannel() {
               <p>Average Latency Time: {averageLatency.toFixed(2)} seconds</p>
             )}
             {searchPerformed && (
-              <p>Failed Packets: {failedPacketsCount}</p>
+              <>
+                <p>Failed Packets: {failedPacketsCount}</p>
+                <Link href="/dashboard">
+                  Add an alert
+                </Link>
+
+              </>
             )}
           </>
         )}
