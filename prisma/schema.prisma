@@ -12,14 +12,35 @@ datasource db {
 }
 
 model Alert {
-  id         Int      @id @default(autoincrement())
+  id         Int         @id @default(autoincrement())
   channelId  String
   chain      String
   clientType String
   userEmail  String
   threshold  Int
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  sentAlerts SentAlert[]
 
   @@index([userEmail])
+}
+
+model SentAlert {
+  id        Int      @id @default(autoincrement())
+  alertId   Int
+  sentAt    DateTime @default(now())
+  recipient String   // Assuming you want to track who the alert was sent to
+
+  alert     Alert    @relation(fields: [alertId], references: [id])
+
+  @@index([alertId])
+}
+
+model ProcessedBlock {
+  id        Int    @id @default(autoincrement())
+  chain     String
+  blockNumber BigInt
+  updatedAt DateTime @updatedAt
+
+  @@unique([chain])
 }
