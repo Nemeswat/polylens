@@ -1,40 +1,53 @@
 'use client';
 
 import { api } from "~/trpc/react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { Button } from "@/components/ui/button";
+
 
 export default function Alerts() {
-  const { data: alerts, refetch } = api.alert.getAll.useQuery();
+  const {data: alerts, refetch} = api.alert.getAll.useQuery();
   const removeAlertMutation = api.alert.remove.useMutation();
 
   const handleRemove = async (alertId: number) => {
-    await removeAlertMutation.mutateAsync({ id: alertId });
+    await removeAlertMutation.mutateAsync({id: alertId});
     await refetch();
   };
 
+  if (!alerts) return null;
+
   return (
-    <table>
-      <thead>
-        <tr>
-          <th>Channel ID</th>
-          <th>Client Type</th>
-          <th>Chain</th>
-          <th>Threshold</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {alerts?.map((alert) => (
-          <tr key={alert.id}>
-            <td>{alert.channelId}</td>
-            <td>{alert.clientType}</td>
-            <td>{alert.chain}</td>
-            <td>{alert.threshold}</td>
-            <td>
-              <button onClick={() => handleRemove(alert.id)}>Remove</button>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <div className="rounded-md border mt-10">
+      <Table>
+        <TableHeader>
+          <TableRow className="h-12">
+            <TableCell>Channel ID</TableCell>
+            <TableCell>Client Type</TableCell>
+            <TableCell>Chain</TableCell>
+            <TableCell>Threshold (sec)</TableCell>
+            <TableCell>Actions</TableCell>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {alerts?.map((alert) => (
+            <TableRow key={alert.id} className="h-12">
+              <TableCell>{alert.channelId}</TableCell>
+              <TableCell>{alert.clientType}</TableCell>
+              <TableCell>{alert.chain}</TableCell>
+              <TableCell>{alert.threshold}</TableCell>
+              <TableCell>
+                <Button className={"bg-red-500"} onClick={() => handleRemove(alert.id)}>Remove</Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 }
