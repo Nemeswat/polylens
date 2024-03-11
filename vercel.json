@@ -1,0 +1,6 @@
+{
+  "crons": [{
+    "path": "/api/trpc/alert.sendEmailAlerts?batch=1&input={}",
+    "schedule": "* * * * *"
+  }]
+}

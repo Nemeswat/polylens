@@ -202,6 +202,8 @@ export const alertRouter = createTRPCRouter({
           }
 
           await updateProcessedBlock(ctx, chain!, latestBlockNumber);
+        } else {
+          console.log('No new blocks to process for', chain);
         }
       }
     }),
