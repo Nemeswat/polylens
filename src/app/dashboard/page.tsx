@@ -1,7 +1,7 @@
 import { unstable_noStore as noStore } from "next/cache";
 
 import AddAlert from "~/app/_components/add-alert";
-import Alerts from "~/app/_components/Alerts";
+import Alerts from "~/app/_components/alerts";
 
 export default async function Dashboard() {
   noStore();

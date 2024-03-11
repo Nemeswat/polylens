@@ -8,7 +8,7 @@ export default function Alerts() {
 
   const handleRemove = async (alertId: number) => {
     await removeAlertMutation.mutateAsync({ id: alertId });
-    refetch(); // Refetch alerts after removal
+    await refetch(); // Refetch alerts after removal
   };
 
   return (

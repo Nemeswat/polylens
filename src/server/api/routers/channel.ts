@@ -4,7 +4,7 @@ import Abi from '~/app/utils/dispatcher.json';
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { type CHAIN, CHAIN_CONFIGS } from "~/app/utils/chains/configs";
-import { Packet } from "~/app/utils/types/packet";
+import { type Packet } from "~/app/utils/types/packet";
 import { currentUser } from "@clerk/nextjs";
 import { Resend } from 'resend';
 import { env } from "~/env";
@@ -12,7 +12,7 @@ import { PrismaClient } from "@prisma/client";
 
 
 async function sendEmail(email: string, subject: string, message: string) {
-  const resend = new Resend(env.RESEND_API_KEY);
+  const resend: Resend = new Resend(env.RESEND_API_KEY);
 
   await resend.emails.send({
     from: 'PolyLens <onboarding@resend.dev>',
@@ -106,7 +106,7 @@ export const alertRouter = createTRPCRouter({
       clientType: z.enum(["sim", "proof"]),
       threshold: z.number()
     }))
-    .mutation(async ({ctx: {db: PrismaClient}, input}) => {
+    .mutation(async ({ctx, input}) => {
       const {channelId, chain, clientType, threshold} = input;
       const user = await currentUser();
 
@@ -179,7 +179,7 @@ export const alertRouter = createTRPCRouter({
 
         if (!processedBlock || latestBlockNumber > processedBlock.blockNumber) {
           console.log('Fetching packets for', channelId, chain, clientType);
-          const packets = await getPackets(ctx, channelId, chain, clientType, processedBlock?.blockNumber, latestBlockNumber);
+          const packets = await getPackets(ctx, channelId!, chain!, clientType!, processedBlock?.blockNumber, latestBlockNumber);
 
           for (const alert of alertsGroup) {
             for (const packet of packets) {
@@ -201,25 +201,34 @@ export const alertRouter = createTRPCRouter({
             }
           }
 
-          await updateProcessedBlock(ctx, chain, latestBlockNumber);
+          await updateProcessedBlock(ctx, chain!, latestBlockNumber);
         }
       }
     }),
 });
 
-function groupAlerts(alerts) {
+type Alert = {
+  threshold: number;
+  userEmail: string;
+  chain: string;
+  channelId: string;
+  clientType: string;
+  id: number;
+};
+
+function groupAlerts(alerts: Alert[]): Record<string, Alert[]> {
   return alerts.reduce((acc, alert) => {
-    // Using pipe character as a delimiter to avoid conflict with dashes in channel names
     const key = `${alert.channelId}|${alert.chain}|${alert.clientType}`;
     if (!acc[key]) {
       acc[key] = [];
     }
-    acc[key].push(alert);
+
+    acc[key]!.push(alert);
     return acc;
-  }, {});
+  }, {} as Record<string, Alert[]>);
 }
 
-async function updateProcessedBlock(ctx, chain, latestBlockNumber) {
+async function updateProcessedBlock(ctx: {db: PrismaClient}, chain: string, latestBlockNumber: bigint) {
   console.log('Updating processed block for', chain, 'to', latestBlockNumber);
   const processedBlock = await ctx.db.processedBlock.findUnique({
     where: {chain},
