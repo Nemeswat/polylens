@@ -34,7 +34,7 @@ const formSchema = z.object({
 
 
 
-export function AnalyseChannel() {
+export function AnalyzeChannel() {
   const router = useRouter();
 
   // State to hold the most recent completed packet's round-trip time

@@ -2,8 +2,8 @@ import { unstable_noStore as noStore } from "next/cache";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 
-import AddAlert from "~/app/_components/add-alert";
-import Alerts from "~/app/_components/alerts";
+import AddAlert from "~/app/_components/AddAlert";
+import Alerts from "~/app/_components/Alerts";
 
 export default async function Dashboard() {
   noStore();
