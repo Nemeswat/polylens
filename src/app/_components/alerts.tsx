@@ -22,6 +22,8 @@ export default function Alerts() {
 
   if (isLoading) return <Spinner>Loading...</Spinner>;
 
+  if (!alerts || alerts.length === 0) return <p>There are no alerts set up</p>;
+
   if (!alerts) return null;
 
   return (
