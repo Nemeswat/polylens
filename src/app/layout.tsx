@@ -14,7 +14,7 @@ const inter = Inter({
 export const metadata = {
   title: "PolyLens",
   description: "Polymer Latency Monitoring",
-  icons: [{ rel: "icon", url: "/favicon.ico" }],
+  icons: [{rel: "icon", url: "/favicon.ico"}],
 };
 
 export default function RootLayout({
@@ -25,20 +25,20 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en">
-        <body className={`font-sans ${inter.variable}`}>
-        <TRPCReactProvider>
-          <Navbar/>
-          <main className="flex min-h-screen flex-col items-center justify-center">
-            <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
-              <div className="w-full max-w-lg">
-                {children}
-              </div>
+      <body className={`font-sans ${inter.variable}`}>
+      <TRPCReactProvider>
+        <Navbar/>
+        <main className="flex min-h-screen flex-col items-center">
+          <div className="container flex flex-col items-center gap-12 px-4 py-16 ">
+            <div className="w-full max-w-lg">
+              {children}
             </div>
-          </main>
-          <Toaster />
-        </TRPCReactProvider>
-        </body>
+          </div>
+        </main>
+        <Toaster/>
+      </TRPCReactProvider>
+      </body>
       </html>
     </ClerkProvider>
-);
+  );
 }
