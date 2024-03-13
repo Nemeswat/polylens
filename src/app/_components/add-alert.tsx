@@ -12,6 +12,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Button } from "@/components/ui/button";
 import { ReloadIcon } from '@radix-ui/react-icons';
 import { Input } from "@/components/ui/input";
+import { useToast } from "@/components/ui/use-toast";
 
 
 const formSchema = z.object({
@@ -23,15 +24,24 @@ const formSchema = z.object({
 
 export default function AddAlert() {
   const router = useRouter();
+  const { toast } = useToast()
 
   const [threshold, setThreshold] = useState<number>(120); // Set initial default for 'sim'
   const { isLoaded, isSignedIn, user } = useUser();
-
   const addAlertMutation = api.alert.add.useMutation({
     onSuccess: (res) => {
-      console.log("Alert added successfully!")
+      toast({
+        description: "Alert added successfully!",
+      })
       router.refresh();
     },
+    onError: (err) => {
+      toast({
+        variant: "destructive",
+        description: "Error adding alert.",
+      })
+      router.refresh();
+    }
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -169,7 +179,6 @@ export default function AddAlert() {
         </form>
       </Form>
       {addAlertMutation.isError && <p>Error adding alert.</p>}
-      {addAlertMutation.isSuccess && <p>Alert added successfully!</p>}
     </>
   );
 }
