@@ -95,9 +95,9 @@ export function AnalyzeChannel() {
 
 
   return (
-    <div className={"flex"}>
+    <div className={"flex flex-col"}>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="w-2/3 space-y-6">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="w-auto space-y-6">
           <FormField
             control={form.control}
             name="clientType"
@@ -173,7 +173,7 @@ export function AnalyzeChannel() {
               <FormItem className="space-y-3">
                 <FormLabel>Channel Id</FormLabel>
                 <FormControl>
-                  <Input placeholder="Channel Id" {...field} className="w-3/4" />
+                  <Input placeholder="Channel Id" {...field} className="w-auto" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -188,7 +188,7 @@ export function AnalyzeChannel() {
         </form>
       </Form>
       {searchPerformed && (
-        <div className="mt-0 ml-4 w-96">
+        <div className="mt-4 ml-0 w-auto">
           {noPacketsFound ? (
             <Card>
               <CardContent  className="grid gap-1 pt-6">
