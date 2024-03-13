@@ -9,10 +9,10 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button";
-
+import { Spinner } from "@/components/ui/spinner";
 
 export default function Alerts() {
-  const {data: alerts, refetch} = api.alert.getAll.useQuery();
+  const {data: alerts, isLoading, refetch} = api.alert.getAll.useQuery();
   const removeAlertMutation = api.alert.remove.useMutation();
 
   const handleRemove = async (alertId: number) => {
@@ -20,10 +20,12 @@ export default function Alerts() {
     await refetch();
   };
 
+  if (isLoading) return <Spinner>Loading...</Spinner>;
+
   if (!alerts) return null;
 
   return (
-    <div className="rounded-md border mt-10">
+    <div className="rounded-md mt-10">
       <Table>
         <TableHeader>
           <TableRow className="h-12">
