@@ -1,4 +1,6 @@
 import { unstable_noStore as noStore } from "next/cache";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+
 
 import AddAlert from "~/app/_components/add-alert";
 import Alerts from "~/app/_components/alerts";
@@ -7,13 +9,17 @@ export default async function Dashboard() {
   noStore();
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center">
-      <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
-        <div className="w-full max-w-lg">
-          <AddAlert />
-          <Alerts />
-        </div>
-      </div>
-    </main>
+    <Tabs defaultValue="alerts" className="w-[400px]">
+      <TabsList>
+        <TabsTrigger value="alerts">Alerts</TabsTrigger>
+        <TabsTrigger value="addAlert">Add Alert</TabsTrigger>
+      </TabsList>
+      <TabsContent value="alerts">
+        <Alerts/>
+      </TabsContent>
+      <TabsContent value="addAlert">
+        <AddAlert/>
+      </TabsContent>
+    </Tabs>
   );
 }
