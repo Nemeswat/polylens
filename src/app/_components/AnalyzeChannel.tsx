@@ -5,12 +5,12 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api } from "~/trpc/react";
 import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { ReloadIcon } from "@radix-ui/react-icons"
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { ReloadIcon } from "@radix-ui/react-icons";
 
-import { Input } from "@/components/ui/input"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Input } from "@/components/ui/input";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Form,
   FormControl,
@@ -18,11 +18,13 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
+} from "@/components/ui/form";
 import {
   Card,
   CardContent,
-} from "@/components/ui/card"
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 import { Button } from "@/components/ui/button";
 
@@ -32,20 +34,13 @@ const formSchema = z.object({
   chain: z.string().min(1),
 });
 
-
-
 export function AnalyzeChannel() {
   const router = useRouter();
 
-  // State to hold the most recent completed packet's round-trip time
   const [mostRecentRoundTripTime, setMostRecentRoundTripTime] = useState<number | null>(null);
-  // State to hold the average latency time
   const [averageLatency, setAverageLatency] = useState<number | null>(null);
-  // State to hold the count of failed packets
   const [failedPacketsCount, setFailedPacketsCount] = useState<number>(0);
-  // State to track if a search has been performed
   const [searchPerformed, setSearchPerformed] = useState<boolean>(false);
-  // State to track if no packets were found
   const [noPacketsFound, setNoPacketsFound] = useState<boolean>(false);
 
   const searchChannel = api.channel.search.useMutation({
@@ -53,18 +48,15 @@ export function AnalyzeChannel() {
       if (res.length === 0) {
         setNoPacketsFound(true);
       } else {
-        setNoPacketsFound(false); // Reset state if packets are found
+        setNoPacketsFound(false);
       }
-      // Filter out packets where transmission hasn't finished
-      const completedPackets = res.filter(packet => packet.endTime !== 0);
+      const completedPackets = res.filter((packet) => packet.endTime !== 0);
 
-      // Calculate the most recent packet's round-trip time
       if (completedPackets.length > 0) {
         const mostRecentPacket = completedPackets.sort((a, b) => b.createTime - a.createTime)[0];
         const roundTripTime = mostRecentPacket!.endTime - mostRecentPacket!.createTime;
         setMostRecentRoundTripTime(roundTripTime);
 
-        // Calculate average latency
         const totalLatency = completedPackets.reduce((acc, packet) => acc + (packet.endTime - packet.createTime), 0);
         setAverageLatency(totalLatency / completedPackets.length);
       } else {
@@ -72,7 +64,7 @@ export function AnalyzeChannel() {
         setAverageLatency(null);
       }
 
-      const failedPackets = res.filter(packet => packet.endTime === 0).length;
+      const failedPackets = res.filter((packet) => packet.endTime === 0).length;
       setFailedPacketsCount(failedPackets);
 
       setSearchPerformed(true);
@@ -87,151 +79,151 @@ export function AnalyzeChannel() {
       clientType: "proof",
       chain: "base",
     },
-  })
+  });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     searchChannel.mutate({ channelId: values.channelId, chain: values.chain, clientType: values.clientType });
   }
 
-
   return (
-    <div className={"flex flex-col"}>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="w-auto space-y-6">
-          <FormField
-            control={form.control}
-            name="clientType"
-            render={({ field }) => (
-              <FormItem className="space-y-3">
-                <FormLabel>Client Type</FormLabel>
-                <FormControl>
-                  <RadioGroup
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    className="flex row space-y-1"
-                  >
-                    <FormItem className="flex items-center space-x-3 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="proof" />
-                      </FormControl>
-                      <FormLabel className="font-normal">
-                        Proof
-                      </FormLabel>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-3 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="sim" />
-                      </FormControl>
-                      <FormLabel className="font-normal">
-                        Sim
-                      </FormLabel>
-                    </FormItem>
-                  </RadioGroup>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="chain"
-            render={({ field }) => (
-              <FormItem className="space-y-3">
-                <FormLabel>Chain</FormLabel>
-                <FormControl>
-                  <RadioGroup
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    className="flex flex-row space-y-1"
-                  >
-                    <FormItem className="flex items-center space-x-3 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="base" />
-                      </FormControl>
-                      <FormLabel className="font-normal">
-                        Base
-                      </FormLabel>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-3 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="optimism" />
-                      </FormControl>
-                      <FormLabel className="font-normal">
-                        Optimism
-                      </FormLabel>
-                    </FormItem>
-                  </RadioGroup>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="channelId"
-            render={({ field }) => (
-              <FormItem className="space-y-3">
-                <FormLabel>Channel Id</FormLabel>
-                <FormControl>
-                  <Input placeholder="Channel Id" {...field} className="w-auto" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Button type="submit" disabled={searchChannel.isLoading}>
-            {searchChannel.isLoading && (
-              <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
-            )}
-            {searchChannel.isLoading ? "Analysing..." : "Analyse"}
-          </Button>
-        </form>
-      </Form>
+    <div className="flex flex-col items-center">
+      <h1 className="text-3xl font-semibold mb-8">Channel Analysis</h1>
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle>Enter Channel Details</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <FormField
+                control={form.control}
+                name="clientType"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel>Client Type</FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex flex-row space-x-4"
+                      >
+                        <FormItem>
+                          <FormControl>
+                            <RadioGroupItem value="proof" />
+                          </FormControl>
+                          <FormLabel className="font-normal">Proof</FormLabel>
+                        </FormItem>
+                        <FormItem>
+                          <FormControl>
+                            <RadioGroupItem value="sim" />
+                          </FormControl>
+                          <FormLabel className="font-normal">Sim</FormLabel>
+                        </FormItem>
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="chain"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel>Chain</FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex flex-row space-x-4"
+                      >
+                        <FormItem>
+                          <FormControl>
+                            <RadioGroupItem value="base" />
+                          </FormControl>
+                          <FormLabel className="font-normal">Base</FormLabel>
+                        </FormItem>
+                        <FormItem>
+                          <FormControl>
+                            <RadioGroupItem value="optimism" />
+                          </FormControl>
+                          <FormLabel className="font-normal">Optimism</FormLabel>
+                        </FormItem>
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="channelId"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel>Channel ID</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter Channel ID" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="submit" disabled={searchChannel.isLoading} className="w-full">
+                {searchChannel.isLoading && <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />}
+                {searchChannel.isLoading ? "Analyzing..." : "Analyze Channel"}
+              </Button>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+
       {searchPerformed && (
-        <div className="mt-4 ml-0 w-auto">
+        <div className="mt-8 w-full max-w-md">
           {noPacketsFound ? (
             <Card>
-              <CardContent  className="grid gap-1 pt-6">
-                <div className="-mx-2 flex items-start space-x-4 rounded-md p-2 transition-all">
-                  <p className="text-sm font-medium leading-none">No packets found for the channel.</p>
-                </div>
+              <CardContent>
+                <p className="text-center text-muted-foreground">No packets found for the channel.</p>
               </CardContent>
             </Card>
           ) : (
             <Card>
-              <CardContent className="grid gap-1 pt-4">
-                <div className="-mx-2 flex items-start space-x-4 rounded-md p-2 transition-all">
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium leading-none">Latest Packet RoundTrip</p>
-                    <p className="text-sm text-muted-foreground">
-                      {mostRecentRoundTripTime} seconds
-                    </p>
+              <CardHeader>
+                <CardTitle>Analysis Results</CardTitle>
+              </CardHeader>
+              <CardContent className="grid gap-4">
+                <div className="flex items-center space-x-4">
+                  <div className="flex-1 space-y-1">
+                    <p className="text-sm font-medium">Latest Packet Round Trip</p>
+                    <p className="text-2xl font-semibold">{mostRecentRoundTripTime} sec</p>
+                  </div>
+                  <div className="rounded-full bg-accent p-3">
+                    {/* Icon */}
                   </div>
                 </div>
-                <div className="-mx-2 flex items-start space-x-4 rounded-md p-2 text-accent-foreground transition-all">
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium leading-none">Average Latency Time</p>
-                    <p className="text-sm text-muted-foreground">
-                      {averageLatency?.toFixed(2)} seconds
-                    </p>
+                <div className="flex items-center space-x-4">
+                  <div className="flex-1 space-y-1">
+                    <p className="text-sm font-medium">Average Latency</p>
+                    <p className="text-2xl font-semibold">{averageLatency?.toFixed(2)} sec</p>
+                  </div>
+                  <div className="rounded-full bg-accent p-3">
+                    {/* Icon */}
                   </div>
                 </div>
-                <div className="-mx-2 flex items-start space-x-4 rounded-md p-2 transition-all">
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium leading-none">Failed Packets</p>
-                    <p className="text-sm text-muted-foreground">
-                      {failedPacketsCount}
-                    </p>
+                <div className="flex items-center space-x-4">
+                  <div className="flex-1 space-y-1">
+                    <p className="text-sm font-medium">Failed Packets</p>
+                    <p className="text-2xl font-semibold">{failedPacketsCount}</p>
+                  </div>
+                  <div className="rounded-full bg-red-500 p-3">
+                    {/* Icon */}
                   </div>
                 </div>
-                <Button asChild>
-                  <Link href="/dashboard">
-                    Add an alert
-                  </Link>
-
-                </Button>
-
               </CardContent>
+              <div className="flex justify-end p-4">
+                <Button asChild>
+                  <Link href="/dashboard">Add Alert</Link>
+                </Button>
+              </div>
             </Card>
           )}
         </div>
