@@ -150,6 +150,7 @@ export default function AddAlert() {
                     type="number"
                     placeholder="Threshold"
                     {...field}
+                    onChange={e => field.onChange(Number(e.target.value))}
                     className="w-3/4 px-4 py-2"
                   />
                 </FormControl>

@@ -137,19 +137,23 @@ export function AnalyzeChannel() {
                       <RadioGroup
                         onValueChange={field.onChange}
                         defaultValue={field.value}
-                        className="flex flex-row space-x-4"
+                        className="flex row space-y-0"
                       >
-                        <FormItem>
+                        <FormItem className="flex items-center space-x-1 space-y-0">
                           <FormControl>
                             <RadioGroupItem value="proof" />
                           </FormControl>
-                          <FormLabel className="font-normal">Proof</FormLabel>
+                          <FormLabel className="font-normal">
+                            Proof
+                          </FormLabel>
                         </FormItem>
-                        <FormItem>
+                        <FormItem className="flex items-center space-x-1 space-y-0">
                           <FormControl>
                             <RadioGroupItem value="sim" />
                           </FormControl>
-                          <FormLabel className="font-normal">Sim</FormLabel>
+                          <FormLabel className="font-normal">
+                            Sim
+                          </FormLabel>
                         </FormItem>
                       </RadioGroup>
                     </FormControl>
@@ -167,19 +171,23 @@ export function AnalyzeChannel() {
                       <RadioGroup
                         onValueChange={field.onChange}
                         defaultValue={field.value}
-                        className="flex flex-row space-x-4"
+                        className="flex flex-row space-y-0"
                       >
-                        <FormItem>
+                        <FormItem className="flex items-center space-x-1 space-y-0">
                           <FormControl>
                             <RadioGroupItem value="base" />
                           </FormControl>
-                          <FormLabel className="font-normal">Base</FormLabel>
+                          <FormLabel className="font-normal">
+                            Base
+                          </FormLabel>
                         </FormItem>
-                        <FormItem>
+                        <FormItem className="flex items-center space-x-1 space-y-0">
                           <FormControl>
                             <RadioGroupItem value="optimism" />
                           </FormControl>
-                          <FormLabel className="font-normal">Optimism</FormLabel>
+                          <FormLabel className="font-normal">
+                            Optimism
+                          </FormLabel>
                         </FormItem>
                       </RadioGroup>
                     </FormControl>
@@ -228,17 +236,19 @@ export function AnalyzeChannel() {
                     <p className="text-sm font-medium">Latest Packet Round Trip</p>
                     <p className="text-2xl font-semibold">{mostRecentRoundTripTime} sec</p>
                   </div>
-                  <div className="rounded-full bg-accent p-3">
-                    {/* Icon */}
-                  </div>
+                  {(mostRecentRoundTripTime && mostRecentRoundTripTime > 1.5 * averageLatency!) && (
+                    <div className="rounded-full bg-red-500 p-3">
+                    </div>
+                  )}
+                  {(mostRecentRoundTripTime && mostRecentRoundTripTime < 1.5 * averageLatency!) && (
+                    <div className="rounded-full bg-green-500 p-3">
+                    </div>
+                  )}
                 </div>
                 <div className="flex items-center space-x-4">
                   <div className="flex-1 space-y-1">
                     <p className="text-sm font-medium">Average Latency</p>
                     <p className="text-2xl font-semibold">{averageLatency?.toFixed(2)} sec</p>
-                  </div>
-                  <div className="rounded-full bg-accent p-3">
-                    {/* Icon */}
                   </div>
                 </div>
                 <div className="flex items-center space-x-4">
