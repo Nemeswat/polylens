@@ -41,6 +41,7 @@ export function AnalyzeChannel() {
   const [mostRecentRoundTripTime, setMostRecentRoundTripTime] = useState<number | null>(null);
   const [averageLatency, setAverageLatency] = useState<number | null>(null);
   const [failedPacketsCount, setFailedPacketsCount] = useState<number>(0);
+  const [succeededPacketsCount, setSucceededPacketsCount] = useState<number>(0);
   const [searchPerformed, setSearchPerformed] = useState<boolean>(false);
   const [noPacketsFound, setNoPacketsFound] = useState<boolean>(false);
   const [latencyData, setLatencyData] = useState<{ blockNumber: number; latency: number }[]>([]);
@@ -70,9 +71,10 @@ export function AnalyzeChannel() {
 
       const failedPackets = res.filter((packet) => packet.endTime === 0).length;
       setFailedPacketsCount(failedPackets);
+      setSucceededPacketsCount(res.length - failedPackets);
 
       // Prepare data for latency graph
-      const latencyGraphData = res.map((packet) => ({
+      const latencyGraphData = res.filter((packet) => packet.endTime !== 0).map((packet) => ({
         blockNumber: packet.createTime, // Use createTime as block number
         latency: packet.endTime - packet.createTime,
       }));
@@ -212,7 +214,7 @@ export function AnalyzeChannel() {
           {noPacketsFound ? (
             <Card>
               <CardContent>
-                <p className="text-center text-muted-foreground">No packets found for the channel.</p>
+                <p className="text-center text-muted-foreground pt-6">No packets found for the channel.</p>
               </CardContent>
             </Card>
           ) : (
@@ -236,6 +238,15 @@ export function AnalyzeChannel() {
                     <p className="text-2xl font-semibold">{averageLatency?.toFixed(2)} sec</p>
                   </div>
                   <div className="rounded-full bg-accent p-3">
+                    {/* Icon */}
+                  </div>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <div className="flex-1 space-y-1">
+                    <p className="text-sm font-medium">Succeeded Packets</p>
+                    <p className="text-2xl font-semibold">{succeededPacketsCount}</p>
+                  </div>
+                  <div className="rounded-full bg-green-500 p-3">
                     {/* Icon */}
                   </div>
                 </div>
