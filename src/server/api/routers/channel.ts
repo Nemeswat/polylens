@@ -50,6 +50,7 @@ async function getPackets(ctx: {db: PrismaClient}, channelId: string, chain: str
 
     const key = `${srcPortAddress}-${ethers.decodeBytes32String(srcChannelId as string)}-${sequence}`;
     const srcBlock = await provider.getBlock(sendEvent.blockNumber);
+    console.log('Send log timestamp:', srcBlock!.timestamp);
     packets[key] = {
       sequence: sequence as string,
       createTime: srcBlock!.timestamp,
@@ -73,6 +74,9 @@ async function getPackets(ctx: {db: PrismaClient}, channelId: string, chain: str
 
     const srcBlock = await provider.getBlock(ackEvent.blockNumber);
     if (srcBlock!.timestamp < packets[key]!.createTime) {
+      console.log(`Negative latency detected for packet ${key}:`);
+      console.log(`createTime: ${packets[key]!.createTime}`);
+      console.log(`endTime: ${srcBlock!.timestamp}`);
       return;
     }
     packets[key]!.endTime = srcBlock!.timestamp;

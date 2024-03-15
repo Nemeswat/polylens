@@ -28,6 +28,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { LatencyGraph } from './LatencyGraph';
+import { formatLatency } from '~/lib/utils';
 
 const formSchema = z.object({
   channelId: z.string().min(1),
@@ -44,7 +45,7 @@ export function AnalyzeChannel() {
   const [succeededPacketsCount, setSucceededPacketsCount] = useState<number>(0);
   const [searchPerformed, setSearchPerformed] = useState<boolean>(false);
   const [noPacketsFound, setNoPacketsFound] = useState<boolean>(false);
-  const [latencyData, setLatencyData] = useState<{ blockNumber: number; latency: number }[]>([]);
+  const [latencyData, setLatencyData] = useState<{ timestamp: number; latency: number }[]>([]);
   const [latencyPercentiles, setLatencyPercentiles] = useState<{ p25: number; p50: number; p75: number; p95: number }>({ p25: 0, p50: 0, p75: 0, p95: 0 });
   const [latencyTrendColor, setLatencyTrendColor] = useState<string>('gray');
 
@@ -75,7 +76,7 @@ export function AnalyzeChannel() {
 
       // Prepare data for latency graph
       const latencyGraphData = res.filter((packet) => packet.endTime !== 0).map((packet) => ({
-        blockNumber: packet.createTime, // Use createTime as block number
+        timestamp: packet.createTime * 1000, // Convert timestamp to Date object
         latency: packet.endTime - packet.createTime,
       }));
 
@@ -234,21 +235,21 @@ export function AnalyzeChannel() {
                 <div className="flex items-center space-x-4">
                   <div className="flex-1 space-y-1">
                     <p className="text-sm font-medium">Latest Packet Round Trip</p>
-                    <p className="text-2xl font-semibold">{mostRecentRoundTripTime} sec</p>
+                    <p className="text-2xl font-semibold">{formatLatency(mostRecentRoundTripTime!)}</p>
                   </div>
-                  {(mostRecentRoundTripTime && mostRecentRoundTripTime > 1.5 * averageLatency!) && (
-                    <div className="rounded-full bg-red-500 p-3">
-                    </div>
-                  )}
-                  {(mostRecentRoundTripTime && mostRecentRoundTripTime < 1.5 * averageLatency!) && (
-                    <div className="rounded-full bg-green-500 p-3">
-                    </div>
-                  )}
+                  <div className="flex items-center">
+                    {(mostRecentRoundTripTime && mostRecentRoundTripTime > 1.5 * averageLatency!) && (
+                      <div className="rounded-full bg-red-500 p-3"></div>
+                    )}
+                    {(mostRecentRoundTripTime && mostRecentRoundTripTime < 1.5 * averageLatency!) && (
+                      <div className="rounded-full bg-green-500 p-3"></div>
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center space-x-4">
                   <div className="flex-1 space-y-1">
                     <p className="text-sm font-medium">Average Latency</p>
-                    <p className="text-2xl font-semibold">{averageLatency?.toFixed(2)} sec</p>
+                    <p className="text-2xl font-semibold">{formatLatency(averageLatency!)}</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-4">
@@ -270,29 +271,33 @@ export function AnalyzeChannel() {
                   </div>
                 </div>
                 <div className="mt-8">
-                  <h3 className="text-lg font-semibold mb-2">Latency Percentiles</h3>
+                  <div className="mt-4 border-t border-border pt-2">
+                    <h3 className="text-lg font-semibold mb-2">Latency Percentiles</h3>
+                  </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm font-medium">25th Percentile</p>
-                      <p className="text-lg font-semibold">{latencyPercentiles.p25.toFixed(2)} sec</p>
+                      <p className="text-lg font-semibold">{formatLatency(latencyPercentiles.p25)}</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium">50th Percentile</p>
-                      <p className="text-lg font-semibold">{latencyPercentiles.p50.toFixed(2)} sec</p>
+                      <p className="text-lg font-semibold">{formatLatency(latencyPercentiles.p50)}</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium">75th Percentile</p>
-                      <p className="text-lg font-semibold">{latencyPercentiles.p75.toFixed(2)} sec</p>
+                      <p className="text-lg font-semibold">{formatLatency(latencyPercentiles.p75)}</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium">95th Percentile</p>
-                      <p className="text-lg font-semibold">{latencyPercentiles.p95.toFixed(2)} sec</p>
+                      <p className="text-lg font-semibold">{formatLatency(latencyPercentiles.p95)}</p>
                     </div>
                   </div>
                 </div>
 
                 <div className="mt-8">
-                  <h3 className="text-lg font-semibold mb-2">Latency Trend</h3>
+                  <div className="mt-4 border-t border-border pt-2">
+                    <h3 className="text-lg font-semibold mb-2">Latency Trend</h3>
+                  </div>
                   <div className={`rounded-full p-3 ${getTrendColorClass(latencyTrendColor)}`}>
                     {/* Icon */}
                   </div>
@@ -300,11 +305,12 @@ export function AnalyzeChannel() {
 
                 <div className="mt-8">
                   <h3 className="text-lg font-semibold mb-2">Latency Graph</h3>
+                  {/* <p className="text-sm text-muted-foreground mb-4">This graph displays the packet latency over time for the selected channel.</p> */}
                   <LatencyGraph data={latencyData} />
                 </div>
               </CardContent>
-              <div className="flex justify-end p-4">
-                <Button asChild>
+              <div className="flex justify-center p-4">
+                <Button asChild className="w-full max-w-md">
                   <Link href="/dashboard">Add Alert</Link>
                 </Button>
               </div>
