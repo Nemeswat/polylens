@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/card";
 
 import { Button } from "@/components/ui/button";
+import { LatencyGraph } from './LatencyGraph';
 
 const formSchema = z.object({
   channelId: z.string().min(1),
@@ -42,6 +43,9 @@ export function AnalyzeChannel() {
   const [failedPacketsCount, setFailedPacketsCount] = useState<number>(0);
   const [searchPerformed, setSearchPerformed] = useState<boolean>(false);
   const [noPacketsFound, setNoPacketsFound] = useState<boolean>(false);
+  const [latencyData, setLatencyData] = useState<{ blockNumber: number; latency: number }[]>([]);
+  const [latencyPercentiles, setLatencyPercentiles] = useState<{ p25: number; p50: number; p75: number; p95: number }>({ p25: 0, p50: 0, p75: 0, p95: 0 });
+  const [latencyTrendColor, setLatencyTrendColor] = useState<string>('gray');
 
   const searchChannel = api.channel.search.useMutation({
     onSuccess: (res) => {
@@ -66,6 +70,32 @@ export function AnalyzeChannel() {
 
       const failedPackets = res.filter((packet) => packet.endTime === 0).length;
       setFailedPacketsCount(failedPackets);
+
+      // Prepare data for latency graph
+      const latencyGraphData = res.map((packet) => ({
+        blockNumber: packet.createTime, // Use createTime as block number
+        latency: packet.endTime - packet.createTime,
+      }));
+
+      // Calculate latency percentiles
+      const latencies = latencyGraphData.map((data) => data.latency);
+      const p25 = calculatePercentile(latencies, 25);
+      const p50 = calculatePercentile(latencies, 50);
+      const p75 = calculatePercentile(latencies, 75);
+      const p95 = calculatePercentile(latencies, 95);
+
+      // Determine latency trend color code
+      let trendColor = 'green';
+      if (p95 > 1.5 * p50) {
+        trendColor = 'red';
+      } else if (p95 > 1.2 * p50) {
+        trendColor = 'yellow';
+      }
+
+      // Update state with latency data and percentiles
+      setLatencyData(latencyGraphData);
+      setLatencyPercentiles({ p25, p50, p75, p95 });
+      setLatencyTrendColor(trendColor);
 
       setSearchPerformed(true);
       router.refresh();
@@ -218,6 +248,39 @@ export function AnalyzeChannel() {
                     {/* Icon */}
                   </div>
                 </div>
+                <div className="mt-8">
+                  <h3 className="text-lg font-semibold mb-2">Latency Percentiles</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm font-medium">25th Percentile</p>
+                      <p className="text-lg font-semibold">{latencyPercentiles.p25.toFixed(2)} sec</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">50th Percentile</p>
+                      <p className="text-lg font-semibold">{latencyPercentiles.p50.toFixed(2)} sec</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">75th Percentile</p>
+                      <p className="text-lg font-semibold">{latencyPercentiles.p75.toFixed(2)} sec</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">95th Percentile</p>
+                      <p className="text-lg font-semibold">{latencyPercentiles.p95.toFixed(2)} sec</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-8">
+                  <h3 className="text-lg font-semibold mb-2">Latency Trend</h3>
+                  <div className={`rounded-full p-3 ${getTrendColorClass(latencyTrendColor)}`}>
+                    {/* Icon */}
+                  </div>
+                </div>
+
+                <div className="mt-8">
+                  <h3 className="text-lg font-semibold mb-2">Latency Graph</h3>
+                  <LatencyGraph data={latencyData} />
+                </div>
               </CardContent>
               <div className="flex justify-end p-4">
                 <Button asChild>
@@ -230,4 +293,31 @@ export function AnalyzeChannel() {
       )}
     </div>
   );
+}
+
+// Helper function to calculate percentile
+function calculatePercentile(data: number[], percentile: number): number {
+  const sorted = [...data].sort((a, b) => a - b);
+  const index = (percentile / 100) * (sorted.length - 1);
+  const lower = Math.floor(index);
+  const upper = Math.ceil(index);
+  if (lower === upper) {
+    return sorted[lower]!;
+  }
+  const weightedAverage = (sorted[lower]! * (upper - index)) + (sorted[upper]! * (index - lower));
+  return weightedAverage;
+}
+
+// Helper function to get trend color class
+function getTrendColorClass(color: string): string {
+  switch (color) {
+    case 'green':
+      return 'bg-green-500';
+    case 'yellow':
+      return 'bg-yellow-500';
+    case 'red':
+      return 'bg-red-500';
+    default:
+      return 'bg-gray-500';
+  }
 }
