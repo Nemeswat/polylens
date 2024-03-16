@@ -24,7 +24,7 @@ To run PolyLens locally, follow these steps:
 3. Set up environment variables:
    - Copy the `.env.example` file and rename it to `.env`. 
    - Fill out the required environment variables (e.g., API keys, database connection strings).
-   - For [Clerk](clerk.com) and [Resend](https://resend.com/), you can sign up for a free account and obtain the required credentials.
+   - For [Clerk](clerk.com) and [Mailgun](https:/mailgun.com/), you can sign up for a free account and obtain the required credentials.
    - For Prisma, you can set up a local database or use a cloud-based solution like [Supabase](https://supabase.com/).
 
 4. Start the development server:
@@ -41,7 +41,7 @@ To run PolyLens locally, follow these steps:
 - **Clerk**: User authentication and management solution.
 - **Tailwind CSS**: Utility-first CSS framework for rapid UI development.
 - **Recharts**: Composable charting library built on React components.
-- **Resend**: Email service for sending latency alerts.
+- **Mailgun**: Email service for sending latency alerts.
 
 ## Challenges Faced
 During the development of PolyLens, we encountered a few challenges:
