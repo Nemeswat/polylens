@@ -11,20 +11,8 @@ import { ReloadIcon } from "@radix-ui/react-icons";
 
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form";
+import { Card, CardContent, CardHeader, CardTitle, } from "@/components/ui/card";
 
 import { Button } from "@/components/ui/button";
 import { LatencyGraph } from './LatencyGraph';
@@ -50,6 +38,30 @@ export function AnalyzeChannel() {
   const [latencyData, setLatencyData] = useState<{ timestamp: number; latency: number }[]>([]);
   const [latencyPercentiles, setLatencyPercentiles] = useState<{ p25: number; p50: number; p75: number; p95: number }>({ p25: 0, p50: 0, p75: 0, p95: 0 });
   const [latencyTrendColor, setLatencyTrendColor] = useState<string>('gray');
+
+  function calculateSMA(data: number[]): number[] {
+    const sma: number[] = [];
+    for (let i = 0; i < data.length; i++) {
+      let sum = 0;
+      for (let j = 0; j <= i; j++) {
+        sum += data[j]!;
+      }
+      sma.push(sum / (i + 1));
+    }
+    return sma;
+  }
+
+  function getTrendColorClass(latencyData: number[]): string {
+    const sma = calculateSMA(latencyData);
+    const fullAverage = sma[sma.length - 1];
+    const firstTwoThirdsAverage = sma[sma.length - Math.floor(sma.length / 3)]
+
+    if (fullAverage! <= firstTwoThirdsAverage!) {
+      return 'bg-green-500'; // Declining trend
+    } else {
+      return 'bg-red-500'; // Increasing trend
+    }
+  }
 
   const searchChannel = api.channel.search.useMutation({
     onSuccess: (res) => {
@@ -84,23 +96,16 @@ export function AnalyzeChannel() {
 
       // Calculate latency percentiles
       const latencies = latencyGraphData.map((data) => data.latency);
+
       const p25 = calculatePercentile(latencies, 25);
       const p50 = calculatePercentile(latencies, 50);
       const p75 = calculatePercentile(latencies, 75);
       const p95 = calculatePercentile(latencies, 95);
 
-      // Determine latency trend color code
-      let trendColor = 'green';
-      if (p95 > 1.5 * p50) {
-        trendColor = 'red';
-      } else if (p95 > 1.2 * p50) {
-        trendColor = 'yellow';
-      }
-
       // Update state with latency data and percentiles
       setLatencyData(latencyGraphData);
       setLatencyPercentiles({ p25, p50, p75, p95 });
-      setLatencyTrendColor(trendColor);
+      setLatencyTrendColor(getTrendColorClass(latencies));
 
       setSearchPerformed(true);
       router.refresh();
@@ -265,7 +270,7 @@ export function AnalyzeChannel() {
                 </div>
                 <div className="flex items-center space-x-4">
                   <div className="flex-1 space-y-1">
-                    <p className="text-sm font-medium">Failed Packets</p>
+                    <p className="text-sm font-medium">Not Acknowledged Packets</p>
                     <p className="text-2xl font-semibold">{failedPacketsCount}</p>
                   </div>
                   <div className="rounded-full bg-red-500 p-3">
@@ -300,7 +305,7 @@ export function AnalyzeChannel() {
                   <div className="mt-4 border-t border-border pt-2">
                     <h3 className="text-lg font-semibold mb-2">Latency Trend</h3>
                   </div>
-                  <div className={`rounded-full p-3 ${getTrendColorClass(latencyTrendColor)}`}>
+                  <div className={`rounded-full p-3 ${latencyTrendColor}`}>
                     {/* Icon */}
                   </div>
                 </div>

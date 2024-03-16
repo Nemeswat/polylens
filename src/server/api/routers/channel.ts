@@ -50,7 +50,6 @@ async function getPackets(ctx: {db: PrismaClient}, channelId: string, chain: str
 
     const key = `${srcPortAddress}-${ethers.decodeBytes32String(srcChannelId as string)}-${sequence}`;
     const srcBlock = await provider.getBlock(sendEvent.blockNumber);
-    console.log('Send log timestamp:', srcBlock!.timestamp);
     packets[key] = {
       sequence: sequence as string,
       createTime: srcBlock!.timestamp,
