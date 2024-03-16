@@ -150,7 +150,10 @@ export const alertRouter = createTRPCRouter({
   remove: publicProcedure
     .input(z.object({id: z.number()}))
     .mutation(({ctx, input}) => {
-      return ctx.db.alert.delete({
+      return ctx.db.alert.update({
+        data: {
+          deletedAt: new Date(),
+        },
         where: {
           id: input.id,
         },
@@ -171,21 +174,22 @@ export const alertRouter = createTRPCRouter({
       throw new Error("User must be signed in to add an alert");
     }
 
-    return ctx.db.alert.findMany({where: {userEmail: userEmail}});
+    return ctx.db.alert.findMany({where: {userEmail: userEmail, deletedAt: null}});
   }),
 
   sendEmailAlerts: publicProcedure.query(async ({ctx}) => {
-    return sendEmailAlerts(ctx);
+    return await sendEmailAlerts(ctx);
   }),
 
   sendEmailAlertsPost: publicProcedure.mutation(async ({ctx}) => {
-    return sendEmailAlerts(ctx);
+    return await sendEmailAlerts(ctx);
   }),
 
 });
 
 async function sendEmailAlerts(ctx: { db: PrismaClient }) {
-  const alerts = await ctx.db.alert.findMany();
+  console.log('Sending email alerts');
+  const alerts = await ctx.db.alert.findMany({where: {deletedAt: null}});
   // Group alerts by channelId, chain, and clientType
   const groupedAlerts = groupAlerts(alerts);
 

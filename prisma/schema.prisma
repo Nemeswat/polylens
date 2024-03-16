@@ -21,6 +21,7 @@ model Alert {
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
   sentAlerts SentAlert[]
+  deletedAt  DateTime?
 
   @@index([userEmail])
 }
@@ -29,18 +30,18 @@ model SentAlert {
   id        Int      @id @default(autoincrement())
   alertId   Int
   sentAt    DateTime @default(now())
-  recipient String   // Assuming you want to track who the alert was sent to
+  recipient String // Assuming you want to track who the alert was sent to
 
-  alert     Alert    @relation(fields: [alertId], references: [id])
+  alert Alert @relation(fields: [alertId], references: [id])
 
   @@index([alertId])
 }
 
 model ProcessedBlock {
-  id        Int    @id @default(autoincrement())
-  chain     String
+  id          Int      @id @default(autoincrement())
+  chain       String
   blockNumber BigInt
-  updatedAt DateTime @updatedAt
+  updatedAt   DateTime @updatedAt
 
   @@unique([chain])
 }
