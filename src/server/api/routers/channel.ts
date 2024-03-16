@@ -22,7 +22,9 @@ async function sendEmail(email: string, subject: string, message: string) {
   });
 }
 
-async function getPackets(ctx: {db: PrismaClient}, channelId: string, chain: string, clientType: string, fromBlock?: ethers.BlockTag, toBlock?: ethers.BlockTag) {
+async function getPackets(ctx: {
+  db: PrismaClient
+}, channelId: string, chain: string, clientType: string, fromBlock?: ethers.BlockTag, toBlock?: ethers.BlockTag) {
   const chainId = chain as CHAIN;
   const dispatcherAddress = clientType == "sim" ? CHAIN_CONFIGS[chainId].simDispatcher : CHAIN_CONFIGS[chainId].proofDispatcher;
   const provider = new JsonRpcProvider(CHAIN_CONFIGS[chainId].rpc, CHAIN_CONFIGS[chainId].id);
@@ -167,73 +169,81 @@ export const alertRouter = createTRPCRouter({
     return ctx.db.alert.findMany({where: {userEmail: userEmail}});
   }),
 
-  sendEmailAlerts: publicProcedure
-    .query(async ({ctx}) => {
-      const alerts = await ctx.db.alert.findMany();
-      // Group alerts by channelId, chain, and clientType
-      const groupedAlerts = groupAlerts(alerts);
+  sendEmailAlerts: publicProcedure.query(async ({ctx}) => {
+    return sendEmailAlerts(ctx);
+  }),
 
-      for (const [key, alertsGroup] of Object.entries(groupedAlerts)) {
-        const [channelId, chain, clientType] = key.split('|');
-        const processedBlock = await ctx.db.processedBlock.findUnique({
-          where: {chain},
-        });
+  sendEmailAlertsPost: publicProcedure.mutation(async ({ctx}) => {
+    return sendEmailAlerts(ctx);
+  }),
 
-        const provider = new JsonRpcProvider(CHAIN_CONFIGS[chain as CHAIN].rpc, CHAIN_CONFIGS[chain as CHAIN].id);
-        const block = await provider.getBlock('latest');
-        const latestBlockNumber = BigInt(block!.number);
-        if (!latestBlockNumber) {
-          throw new Error('Failed to fetch latest block number');
-        }
+});
 
-        if (!processedBlock || latestBlockNumber > processedBlock.blockNumber) {
-          console.log('Fetching packets for', channelId, chain, clientType);
-          const packets = await getPackets(ctx, channelId!, chain!, clientType!, processedBlock?.blockNumber, latestBlockNumber);
+async function sendEmailAlerts(ctx: { db: PrismaClient }) {
+  const alerts = await ctx.db.alert.findMany();
+  // Group alerts by channelId, chain, and clientType
+  const groupedAlerts = groupAlerts(alerts);
 
-          const alertsToSend: Record<string, { threshold: number, packets: Packet[], alertIds: Set<number> }> = {};
+  for (const [key, alertsGroup] of Object.entries(groupedAlerts)) {
+    const [channelId, chain, clientType] = key.split('|');
+    const processedBlock = await ctx.db.processedBlock.findUnique({
+      where: {chain},
+    });
 
-          for (const alert of alertsGroup) {
-            for (const packet of packets) {
-              if (packet.endTime !== 0 && (packet.endTime - packet.createTime) > alert.threshold) {
-                const userEmail = alert.userEmail;
-                if (!alertsToSend[userEmail]) {
-                  alertsToSend[userEmail] = { threshold: alert.threshold, packets: [], alertIds: new Set() };
-                }
-                alertsToSend[userEmail]!.packets.push(packet);
-                alertsToSend[userEmail]!.alertIds.add(alert.id);
-              }
+    const provider = new JsonRpcProvider(CHAIN_CONFIGS[chain as CHAIN].rpc, CHAIN_CONFIGS[chain as CHAIN].id);
+    const block = await provider.getBlock('latest');
+    const latestBlockNumber = BigInt(block!.number);
+    if (!latestBlockNumber) {
+      throw new Error('Failed to fetch latest block number');
+    }
+
+    if (!processedBlock || latestBlockNumber > processedBlock.blockNumber) {
+      console.log('Fetching packets for', channelId, chain, clientType);
+      const packets = await getPackets(ctx, channelId!, chain!, clientType!, processedBlock?.blockNumber, latestBlockNumber);
+
+      const alertsToSend: Record<string, { threshold: number, packets: Packet[], alertIds: Set<number> }> = {};
+
+      for (const alert of alertsGroup) {
+        for (const packet of packets) {
+          if (packet.endTime !== 0 && (packet.endTime - packet.createTime) > alert.threshold) {
+            const userEmail = alert.userEmail;
+            if (!alertsToSend[userEmail]) {
+              alertsToSend[userEmail] = {threshold: alert.threshold, packets: [], alertIds: new Set()};
             }
+            alertsToSend[userEmail]!.packets.push(packet);
+            alertsToSend[userEmail]!.alertIds.add(alert.id);
           }
+        }
+      }
 
-          for (const [userEmail, { threshold, packets, alertIds }] of Object.entries(alertsToSend)) {
-            const packetDetails = packets.map(packet => `Packet sequence ${packet.sequence} took ${packet.endTime - packet.createTime} seconds`).join('\n');
-            const emailBody = `The following packets on channel ${channelId} on chain ${chain} have exceeded the threshold of ${threshold} seconds:
+      for (const [userEmail, {threshold, packets, alertIds}] of Object.entries(alertsToSend)) {
+        const packetDetails = packets.map(packet => `Packet sequence ${packet.sequence} took ${packet.endTime - packet.createTime} seconds`).join('\n');
+        const emailBody = `The following packets on channel ${channelId} on chain ${chain} have exceeded the threshold of ${threshold} seconds:
           
 ${packetDetails}
 
 To modify the alert settings, please visit the PolyLens <a href="https://polylens.vercel.app/">dashboard</a>`;
 
-            console.log(`Sending email to ${userEmail}`);
-            await sendEmail(userEmail, `Alert for Polymer channel ${channelId}`, emailBody);
+        console.log(`Sending email to ${userEmail}`);
+        await sendEmail(userEmail, `Alert for Polymer channel ${channelId}`, emailBody);
 
-            console.log(`Saving alerts for ${userEmail} to the db`);
-            for (const alertId of alertIds) {
-              await ctx.db.sentAlert.create({
-                data: {
-                  alertId,
-                  recipient: userEmail,
-                },
-              });
-            }
-          }
-
-          await updateProcessedBlock(ctx, chain!, latestBlockNumber);
-        } else {
-          console.log('No new blocks to process for', chain);
+        console.log(`Saving alerts for ${userEmail} to the db`);
+        for (const alertId of alertIds) {
+          await ctx.db.sentAlert.create({
+            data: {
+              alertId,
+              recipient: userEmail,
+            },
+          });
         }
       }
-    }),
-});
+
+      await updateProcessedBlock(ctx, chain!, latestBlockNumber);
+    } else {
+      console.log('No new blocks to process for', chain);
+    }
+  }
+}
 
 type Alert = {
   threshold: number;
@@ -256,7 +266,7 @@ function groupAlerts(alerts: Alert[]): Record<string, Alert[]> {
   }, {} as Record<string, Alert[]>);
 }
 
-async function updateProcessedBlock(ctx: {db: PrismaClient}, chain: string, latestBlockNumber: bigint) {
+async function updateProcessedBlock(ctx: { db: PrismaClient }, chain: string, latestBlockNumber: bigint) {
   console.log('Updating processed block for', chain, 'to', latestBlockNumber);
   const processedBlock = await ctx.db.processedBlock.findUnique({
     where: {chain},
