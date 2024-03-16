@@ -86,7 +86,7 @@ async function getPackets(ctx: {db: PrismaClient}, channelId: string, chain: str
   await Promise.allSettled(ackLogs.map(processAckLog));
 
   const response: Packet[] = [];
-  Object.keys(packets).forEach((key) => {
+  Object.keys(packets).sort((a, b) => packets[a]!.createTime - packets[b]!.createTime).forEach((key) => {
     response.push(packets[key]!);
   });
 
