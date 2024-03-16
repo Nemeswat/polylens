@@ -174,7 +174,7 @@ export function AnalyzeChannel() {
                 name="chain"
                 render={({ field }) => (
                   <FormItem className="space-y-3">
-                    <FormLabel>Chain</FormLabel>
+                    <FormLabel>Source Chain</FormLabel>
                     <FormControl>
                       <RadioGroup
                         onValueChange={field.onChange}
