@@ -18,7 +18,7 @@ async function sendEmail(email: string, subject: string, message: string) {
     from: 'PolyLens <onboarding@resend.dev>',
     to: [email],
     subject: subject,
-    text: message,
+    html: message
   });
 }
 
@@ -190,23 +190,40 @@ export const alertRouter = createTRPCRouter({
           console.log('Fetching packets for', channelId, chain, clientType);
           const packets = await getPackets(ctx, channelId!, chain!, clientType!, processedBlock?.blockNumber, latestBlockNumber);
 
+          const alertsToSend: Record<string, { threshold: number, packets: Packet[], alertIds: Set<number> }> = {};
+
           for (const alert of alertsGroup) {
             for (const packet of packets) {
-              if (packet.endTime != 0 && (packet.endTime - packet.createTime) > alert.threshold) {
-                console.log(`Packet latency is ${packet.endTime - packet.createTime} which is greater than the threshold of ${alert.threshold}`);
-                console.log(`Sending email to ${alert.userEmail}`);
-                await sendEmail(alert.userEmail, `Alert for Polymer channel ${channelId}`,
-                  `A packet transaction on channel ${channelId} on chain ${chain} has exceeded the threshold of ${alert.threshold} seconds. The transaction took ${packet.endTime - packet.createTime} seconds to complete.
-                  To modify the alert settings, please visit the PolyLens <a href="https://polylens.vercel.app/">dashboard</a>`);
-
-                console.log(`Saving alert for ${alert.userEmail} to the db`);
-                await ctx.db.sentAlert.create({
-                  data: {
-                    alertId: alert.id,
-                    recipient: alert.userEmail,
-                  },
-                });
+              if (packet.endTime !== 0 && (packet.endTime - packet.createTime) > alert.threshold) {
+                const userEmail = alert.userEmail;
+                if (!alertsToSend[userEmail]) {
+                  alertsToSend[userEmail] = { threshold: alert.threshold, packets: [], alertIds: new Set() };
+                }
+                alertsToSend[userEmail]!.packets.push(packet);
+                alertsToSend[userEmail]!.alertIds.add(alert.id);
               }
+            }
+          }
+
+          for (const [userEmail, { threshold, packets, alertIds }] of Object.entries(alertsToSend)) {
+            const packetDetails = packets.map(packet => `Packet sequence ${packet.sequence} took ${packet.endTime - packet.createTime} seconds`).join('\n');
+            const emailBody = `The following packets on channel ${channelId} on chain ${chain} have exceeded the threshold of ${threshold} seconds:
+          
+${packetDetails}
+
+To modify the alert settings, please visit the PolyLens <a href="https://polylens.vercel.app/">dashboard</a>`;
+
+            console.log(`Sending email to ${userEmail}`);
+            await sendEmail(userEmail, `Alert for Polymer channel ${channelId}`, emailBody);
+
+            console.log(`Saving alerts for ${userEmail} to the db`);
+            for (const alertId of alertIds) {
+              await ctx.db.sentAlert.create({
+                data: {
+                  alertId,
+                  recipient: userEmail,
+                },
+              });
             }
           }
 
