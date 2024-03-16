@@ -7,15 +7,13 @@ import { type CHAIN, CHAIN_CONFIGS } from "~/app/utils/chains/configs";
 import { type Packet } from "~/app/utils/types/packet";
 import { currentUser } from "@clerk/nextjs";
 import { PrismaClient } from "@prisma/client";
-import mailgun from 'mailgun-js';
 import { env } from "@/env";
-
+import Mailgun from 'mailgun.js';
+import FormData from 'form-data';
 
 async function sendEmail(email: string, subject: string, message: string) {
-  const mailgunClient = mailgun({
-    apiKey: env.MAILGUN_API_KEY,
-    domain: "mg.polylens.co",
-  });
+  const mailgun = new Mailgun(FormData);
+  const mg = mailgun.client({username: 'api', key: env.MAILGUN_API_KEY});
 
   const data = {
     from: 'PolyLens <onboarding@your-mailgun-domain.com>',
@@ -25,8 +23,8 @@ async function sendEmail(email: string, subject: string, message: string) {
   };
 
   try {
-    const result = await mailgunClient.messages().send(data);
-    console.log("Email sent: ", result);
+    const result = await mg.messages.create(env.MAILGUN_DOMAIN, data);
+    console.log("Email sent", result);
   } catch (error) {
     console.error(error);
   }

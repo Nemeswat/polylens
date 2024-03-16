@@ -18,6 +18,9 @@ export const env = createEnv({
       .enum(["development", "test", "production"])
       .default("development"),
     MAILGUN_API_KEY: z.string(),
+    MAILGUN_DOMAIN: z.string().default("mg.polylens.co"),
+    OPTIMISM_RPC: z.string(),
+    BASE_RPC: z.string(),
   },
 
   /**
@@ -37,6 +40,9 @@ export const env = createEnv({
     DATABASE_URL: process.env.DATABASE_URL,
     NODE_ENV: process.env.NODE_ENV,
     MAILGUN_API_KEY: process.env.MAILGUN_API_KEY,
+    MAILGUN_DOMAIN: process.env.MAILGUN_DOMAIN,
+    OPTIMISM_RPC: process.env.OPTIMISM_RPC,
+    BASE_RPC: process.env.BASE_RPC,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },
   /**
