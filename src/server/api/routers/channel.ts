@@ -6,28 +6,31 @@ import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { type CHAIN, CHAIN_CONFIGS } from "~/app/utils/chains/configs";
 import { type Packet } from "~/app/utils/types/packet";
 import { currentUser } from "@clerk/nextjs";
-import { Resend } from 'resend';
-import { env } from "~/env";
 import { PrismaClient } from "@prisma/client";
+import mailgun from 'mailgun-js';
+import { env } from "@/env";
 
 
 async function sendEmail(email: string, subject: string, message: string) {
-  const resend: Resend = new Resend(env.RESEND_API_KEY);
-
-  const res = await resend.emails.send({
-    from: 'PolyLens <onboarding@resend.dev>',
-    to: [email],
-    subject: subject,
-    html: message
+  const mailgunClient = mailgun({
+    apiKey: env.MAILGUN_API_KEY,
+    domain: "mg.polylens.co",
   });
 
-  if (res.error) {
-    console.error(res.error);
+  const data = {
+    from: 'PolyLens <onboarding@your-mailgun-domain.com>',
+    to: email,
+    subject: subject,
+    html: message,
+  };
+
+  try {
+    const result = await mailgunClient.messages().send(data);
+    console.log("Email sent: ", result);
+  } catch (error) {
+    console.error(error);
   }
-
-  return res;
 }
-
 async function getPackets(ctx: {
   db: PrismaClient
 }, channelId: string, chain: string, clientType: string, fromBlock?: ethers.BlockTag, toBlock?: ethers.BlockTag) {
@@ -199,8 +202,10 @@ async function sendEmailAlerts(ctx: { db: PrismaClient }) {
       where: {chain},
     });
 
+    console.log('Fetching latest block for', chain, "rpc", CHAIN_CONFIGS[chain as CHAIN].rpc, "id", CHAIN_CONFIGS[chain as CHAIN].id);
     const provider = new JsonRpcProvider(CHAIN_CONFIGS[chain as CHAIN].rpc, CHAIN_CONFIGS[chain as CHAIN].id);
     const block = await provider.getBlock('latest');
+    console.log('Latest block for', chain, 'is', block!.number);
     const latestBlockNumber = BigInt(block!.number);
     if (!latestBlockNumber) {
       throw new Error('Failed to fetch latest block number');
