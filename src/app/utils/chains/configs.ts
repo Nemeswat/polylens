@@ -14,7 +14,7 @@ export const CHAIN_CONFIGS: {
   optimism: {
     id: 11155420,
     display: "Optimism",
-    rpc: "https://opt-sepolia.g.alchemy.com/v2/jKvLhhXvtnWdNeZrKst0demxnwJcYH1o",
+    rpc: process.env.OPTIMISM_RPC ?? "https://sepolia.optimism.io",
     proofDispatcher: opDispatcher,
     simDispatcher: opDispatcherSimClient,
     blockTime: 2,
@@ -23,7 +23,7 @@ export const CHAIN_CONFIGS: {
   base: {
     id: 84532,
     display: "Base",
-    rpc: "https://base-sepolia.g.alchemy.com/v2/776dC6qT-NTtupdnxlUJuXGbUIKWWhLe",
+    rpc: process.env.BASE_RPC ?? "https://sepolia.base.org",
     proofDispatcher: baseDispatcher,
     simDispatcher: baseDispatcherSimClient,
     blockTime: 2,
