@@ -14,12 +14,18 @@ import { PrismaClient } from "@prisma/client";
 async function sendEmail(email: string, subject: string, message: string) {
   const resend: Resend = new Resend(env.RESEND_API_KEY);
 
-  await resend.emails.send({
+  const res = await resend.emails.send({
     from: 'PolyLens <onboarding@resend.dev>',
     to: [email],
     subject: subject,
     html: message
   });
+
+  if (res.error) {
+    console.error(res.error);
+  }
+
+  return res;
 }
 
 async function getPackets(ctx: {
@@ -43,7 +49,6 @@ async function getPackets(ctx: {
   ]) as [Array<ethers.EventLog>, Array<ethers.EventLog>];
 
   if (sendLogs.length == 0) {
-    console.log("No send logs found for channel: ", channelId);
     return []
   }
 
