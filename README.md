@@ -12,7 +12,7 @@ To run PolyLens locally, follow these steps:
 
 1. Clone the repository:
    ```
-   git clone https://github.com/your-username/polylens.git
+   git clone https://github.com/IbcFan/polylens.git
    ```
 
 2. Install dependencies:
@@ -22,8 +22,10 @@ To run PolyLens locally, follow these steps:
    ```
 
 3. Set up environment variables:
-   - Create a `.env` file in the root directory.
-   - Add the required environment variables (e.g., API keys, database connection strings).
+   - Copy the `.env.example` file and rename it to `.env`. 
+   - Fill out the required environment variables (e.g., API keys, database connection strings).
+   - For [Clerk](clerk.com) and [Resend](https://resend.com/), you can sign up for a free account and obtain the required credentials.
+   - For Prisma, you can set up a local database or use a cloud-based solution like [Supabase](https://supabase.com/).
 
 4. Start the development server:
    ```
