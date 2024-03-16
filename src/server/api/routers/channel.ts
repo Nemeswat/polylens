@@ -118,11 +118,16 @@ export const alertRouter = createTRPCRouter({
         throw new Error("User must be signed in to add an alert");
       }
 
-
       const userEmail = user.emailAddresses.find((email) => email.id == user.primaryEmailAddressId)?.emailAddress;
 
       if (!userEmail) {
         throw new Error("User must be signed in to add an alert");
+      }
+
+      // Check the number of alerts the user already has
+      const userAlerts = await ctx.db.alert.findMany({where: {userEmail: userEmail}});
+      if (userAlerts.length >= 3) {
+        throw new Error("User cannot have more than 3 alerts");
       }
 
       return await ctx.db.alert.create({
@@ -135,6 +140,7 @@ export const alertRouter = createTRPCRouter({
         },
       });
     }),
+
   remove: publicProcedure
     .input(z.object({id: z.number()}))
     .mutation(({ctx, input}) => {

@@ -35,9 +35,13 @@ export default function AddAlert() {
       router.refresh();
     },
     onError: (err) => {
+      let errorMessage = "Error adding alert.";
+      if (err.message === "User cannot have more than 3 alerts") {
+        errorMessage = "You cannot add more than 3 alerts";
+      }
       toast({
         variant: "destructive",
-        description: "Error adding alert.",
+        description: errorMessage,
       })
       router.refresh();
     }
