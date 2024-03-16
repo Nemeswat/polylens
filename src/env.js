@@ -21,6 +21,11 @@ export const env = createEnv({
     MAILGUN_DOMAIN: z.string().default("mg.polylens.co"),
     OPTIMISM_RPC: z.string(),
     BASE_RPC: z.string(),
+    CLERK_SECRET_KEY: z.string(),
+    OP_DISPATCHER: z.string(),
+    OP_DISPATCHER_SIM: z.string(),
+    BASE_DISPATCHER: z.string(),
+    BASE_DISPATCHER_SIM: z.string(),
   },
 
   /**
@@ -30,6 +35,7 @@ export const env = createEnv({
    */
   client: {
     // NEXT_PUBLIC_CLIENTVAR: z.string(),
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string(),
   },
 
   /**
@@ -43,7 +49,12 @@ export const env = createEnv({
     MAILGUN_DOMAIN: process.env.MAILGUN_DOMAIN,
     OPTIMISM_RPC: process.env.OPTIMISM_RPC,
     BASE_RPC: process.env.BASE_RPC,
-    // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
+    CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
+    OP_DISPATCHER: process.env.OP_DISPATCHER,
+    OP_DISPATCHER_SIM: process.env.OP_DISPATCHER_SIM,
+    BASE_DISPATCHER: process.env.BASE_DISPATCHER,
+    BASE_DISPATCHER_SIM: process.env.BASE_DISPATCHER_SIM,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
