@@ -24,7 +24,7 @@ const Navbar: React.FC = () => {
     <div className="flex h-16 items-center justify-between px-6 lg:px-14">
       <div className="flex items-center">
         <Link href={"/"} className="shrink-0">
-          <h1 className="text-accent-foreground text-2xl font-bold">polylens</h1>
+          <h1 className="text-accent-foreground text-2xl font-bold">PolyLens</h1>
         </Link>
         <div className="bg-background hidden w-full justify-end gap-4 px-4 py-2 sm:flex">
           <SignedIn>
