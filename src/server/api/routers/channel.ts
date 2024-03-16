@@ -218,6 +218,7 @@ async function sendEmailAlerts(ctx: { db: PrismaClient }) {
       for (const alert of alertsGroup) {
         for (const packet of packets) {
           if (packet.endTime !== 0 && (packet.endTime - packet.createTime) > alert.threshold) {
+            console.log('Packet', packet.sequence, 'on channel', channelId, 'on chain', chain, 'exceeded the threshold of', alert.threshold, 'seconds');
             const userEmail = alert.userEmail;
             if (!alertsToSend[userEmail]) {
               alertsToSend[userEmail] = {threshold: alert.threshold, packets: [], alertIds: new Set()};
@@ -229,17 +230,14 @@ async function sendEmailAlerts(ctx: { db: PrismaClient }) {
       }
 
       for (const [userEmail, {threshold, packets, alertIds}] of Object.entries(alertsToSend)) {
-        const packetDetails = packets.map(packet => `Packet sequence ${packet.sequence} took ${packet.endTime - packet.createTime} seconds`).join('\n');
-        const emailBody = `The following packets on channel ${channelId} on chain ${chain} have exceeded the threshold of ${threshold} seconds:
-          
-${packetDetails}
-
-To modify the alert settings, please visit the PolyLens <a href="https://polylens.vercel.app/">dashboard</a>`;
+        const packetDetails = packets.map(packet => `Packet sequence ${packet.sequence} took ${packet.endTime - packet.createTime} seconds`).join('<br/>');
+        const emailBody = `The following packets on channel <b>${channelId}</b> on chain <b>${chain}</b> have exceeded the threshold of <i>${threshold}</i> seconds:<br/><br/>        
+        ${packetDetails}<br/><br/>
+        To modify the alert settings, please visit the PolyLens <a href="https://polylens.vercel.app/">dashboard</a>`;
 
         console.log(`Sending email to ${userEmail}`);
         await sendEmail(userEmail, `Alert for Polymer channel ${channelId}`, emailBody);
 
-        console.log(`Saving alerts for ${userEmail} to the db`);
         for (const alertId of alertIds) {
           await ctx.db.sentAlert.create({
             data: {
