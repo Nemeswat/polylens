@@ -16,7 +16,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 
 const formSchema = z.object({
-  channelId: z.string().min(1),
+  channelId: z.string().min(1).refine(value => /^channel-\d+$/.test(value), {
+    message: "Channel Id should start with 'channel-' followed by a number",
+  }),
   clientType: z.enum(["sim", "proof"]),
   chain: z.enum(["base", "optimism"]),
   threshold: z.number().min(1),

@@ -31,7 +31,9 @@ import { LatencyGraph } from './LatencyGraph';
 import { formatLatency } from '~/lib/utils';
 
 const formSchema = z.object({
-  channelId: z.string().min(1),
+  channelId: z.string().min(1).refine(value => /^channel-\d+$/.test(value), {
+    message: "Channel Id should start with 'channel-' followed by a number",
+  }),
   clientType: z.enum(["proof", "sim"]),
   chain: z.string().min(1),
 });
