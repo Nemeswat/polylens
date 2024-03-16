@@ -8,6 +8,7 @@ import {
   SignedIn,
   SignedOut, UserButton,
 } from "@clerk/nextjs";
+import Image from "next/image";
 
 const routes: { title: string; href: string }[] = [
   { title: "Dashboard", href: "/dashboard" },
@@ -23,7 +24,8 @@ const Navbar: React.FC = () => {
   return (
     <div className="flex h-16 items-center justify-between px-6 lg:px-14">
       <div className="flex items-center">
-        <Link href={"/"} className="shrink-0">
+        <Link href={"/"} className="flex items-center shrink-0">
+          <Image src={"/android-chrome-512x512.png"} alt={""} width={24} height={24}></Image>
           <h1 className="text-accent-foreground text-2xl font-bold">PolyLens</h1>
         </Link>
         <div className="bg-background hidden w-full justify-end gap-4 px-4 py-2 sm:flex">
