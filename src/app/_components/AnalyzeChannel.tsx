@@ -38,6 +38,7 @@ export function AnalyzeChannel() {
   const [latencyData, setLatencyData] = useState<{ timestamp: number; latency: number }[]>([]);
   const [latencyPercentiles, setLatencyPercentiles] = useState<{ p25: number; p50: number; p75: number; p95: number }>({ p25: 0, p50: 0, p75: 0, p95: 0 });
   const [latencyTrendColor, setLatencyTrendColor] = useState<string>('gray');
+  const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
 
   function calculateSMA(data: number[]): number[] {
     const sma: number[] = [];
@@ -65,6 +66,7 @@ export function AnalyzeChannel() {
 
   const searchChannel = api.channel.search.useMutation({
     onSuccess: (res) => {
+      setIsAnalyzing(false);
       if (res.length === 0) {
         setNoPacketsFound(true);
       } else {
@@ -122,6 +124,7 @@ export function AnalyzeChannel() {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsAnalyzing(true);
     searchChannel.mutate({ channelId: values.channelId, chain: values.chain, clientType: values.clientType });
   }
 
@@ -225,7 +228,7 @@ export function AnalyzeChannel() {
         </CardContent>
       </Card>
 
-      {searchPerformed && (
+      {searchPerformed && !isAnalyzing && (
         <div className="mt-8 w-full max-w-md">
           {noPacketsFound ? (
             <Card>
@@ -340,18 +343,4 @@ function calculatePercentile(data: number[], percentile: number): number {
   }
   const weightedAverage = (sorted[lower]! * (upper - index)) + (sorted[upper]! * (index - lower));
   return weightedAverage;
-}
-
-// Helper function to get trend color class
-function getTrendColorClass(color: string): string {
-  switch (color) {
-    case 'green':
-      return 'bg-green-500';
-    case 'yellow':
-      return 'bg-yellow-500';
-    case 'red':
-      return 'bg-red-500';
-    default:
-      return 'bg-gray-500';
-  }
 }
