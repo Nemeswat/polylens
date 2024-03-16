@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { api } from '~/trpc/react';
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
@@ -26,7 +26,6 @@ export default function AddAlert() {
   const router = useRouter();
   const { toast } = useToast()
 
-  const [threshold, setThreshold] = useState<number>(120); // Set initial default for 'sim'
   const { isLoaded, isSignedIn, user } = useUser();
   const addAlertMutation = api.alert.add.useMutation({
     onSuccess: (res) => {

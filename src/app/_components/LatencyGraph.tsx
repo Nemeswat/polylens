@@ -1,4 +1,4 @@
-import { LineChart, Line, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
+import { LineChart, Line, ResponsiveContainer, Tooltip, type TooltipProps } from 'recharts';
 import { format } from 'date-fns';
 import { formatLatency } from '~/lib/utils';
 
@@ -11,19 +11,19 @@ type LatencyGraphProps = {
   data: LatencyData[];
 };
 
-const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-        const timestamp = payload[0].payload.timestamp;
-        console.log(timestamp);
-        return (
-            <div className="bg-white p-2 border border-gray-300 rounded shadow">
-                <p className="text-gray-600 text-xs">{format(new Date(timestamp), 'MMM d, yyyy HH:mm:ss')}</p>
-                <p className="text-gray-600 text-sm font-bold">{`Latency: ${formatLatency(payload[0].value)}`}</p>
-            </div>
-        );
-    }
+const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>) => {
+  if (active && payload?.[0]) {
+    const data = payload[0].payload as LatencyData;
+    const timestamp = data.timestamp;
+    return (
+      <div className="bg-white p-2 border border-gray-300 rounded shadow">
+        <p className="text-gray-600 text-xs">{format(new Date(timestamp), 'MMM d, yyyy HH:mm:ss')}</p>
+        <p className="text-gray-600 text-sm font-bold">{`Latency: ${formatLatency(payload[0].value!)}`}</p>
+      </div>
+    );
+  }
 
-    return null;
+  return null;
 };
 
 export function LatencyGraph({ data }: LatencyGraphProps) {
