@@ -9,7 +9,7 @@ export default async function Dashboard() {
   noStore();
 
   return (
-    <Tabs defaultValue="alerts" className="w-[400px]">
+    <Tabs defaultValue="alerts" className="w-[500px]">
       <TabsList>
         <TabsTrigger value="alerts">Alerts</TabsTrigger>
         <TabsTrigger value="addAlert">Add Alert</TabsTrigger>

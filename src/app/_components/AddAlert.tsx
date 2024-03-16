@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { api } from '~/trpc/react';
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
@@ -13,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { ReloadIcon } from '@radix-ui/react-icons';
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 
 const formSchema = z.object({
@@ -24,9 +24,9 @@ const formSchema = z.object({
 
 export default function AddAlert() {
   const router = useRouter();
-  const { toast } = useToast()
+  const {toast} = useToast()
 
-  const { isLoaded, isSignedIn, user } = useUser();
+  const {isLoaded, isSignedIn, user} = useUser();
   const addAlertMutation = api.alert.add.useMutation({
     onSuccess: (res) => {
       toast({
@@ -63,7 +63,6 @@ export default function AddAlert() {
   }
 
 
-
   function onSubmit(values: z.infer<typeof formSchema>) {
     addAlertMutation.mutate(values);
   }
@@ -71,118 +70,124 @@ export default function AddAlert() {
 
   return (
     <>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="w-2/3 space-y-6">
-          <FormField
-            control={form.control}
-            name="clientType"
-            render={({ field }) => (
-              <FormItem className="space-y-3">
-                <FormLabel>Client Type</FormLabel>
-                <FormControl>
-                  <RadioGroup
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    className="flex row space-y-1"
-                  >
-                    <FormItem className="flex items-center space-x-3 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="proof" />
-                      </FormControl>
-                      <FormLabel className="font-normal">
-                        Proof
-                      </FormLabel>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-3 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="sim" />
-                      </FormControl>
-                      <FormLabel className="font-normal">
-                        Sim
-                      </FormLabel>
-                    </FormItem>
-                  </RadioGroup>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="chain"
-            render={({ field }) => (
-              <FormItem className="space-y-3">
-                <FormLabel>Chain</FormLabel>
-                <FormControl>
-                  <RadioGroup
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    className="flex flex-row space-y-1"
-                  >
-                    <FormItem className="flex items-center space-x-3 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="base" />
-                      </FormControl>
-                      <FormLabel className="font-normal">
-                        Base
-                      </FormLabel>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-3 space-y-0">
-                      <FormControl>
-                        <RadioGroupItem value="optimism" />
-                      </FormControl>
-                      <FormLabel className="font-normal">
-                        Optimism
-                      </FormLabel>
-                    </FormItem>
-                  </RadioGroup>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="threshold"
-            render={({ field }) => (
-              <FormItem className="space-y-3">
-                <FormLabel>Threshold (in seconds)</FormLabel>
-                <FormControl>
-                  <Input
-                    id="thresholdInput"
-                    type="number"
-                    placeholder="Threshold"
-                    {...field}
-                    onChange={e => field.onChange(Number(e.target.value))}
-                    className="w-3/4 px-4 py-2"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="channelId"
-            render={({ field }) => (
-              <FormItem className="space-y-3">
-                <FormLabel>Channel Id</FormLabel>
-                <FormControl>
-                  <Input placeholder="Channel Id" {...field} className="w-3/4" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Button type="submit" disabled={addAlertMutation.isLoading}>
-            {addAlertMutation.isLoading && (
-              <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
-            )}
-            {addAlertMutation.isLoading ? "Adding" : "Add Alert"}
-          </Button>
-        </form>
-      </Form>
-      {addAlertMutation.isError && <p>Error adding alert.</p>}
+      <Card className="w-1/2 mt-10">
+        <CardHeader>
+          <CardTitle>Enter Alert Details</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="w-full space-y-6">
+              <FormField
+                control={form.control}
+                name="clientType"
+                render={({field}) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel>Client Type</FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex row space-y-1"
+                      >
+                        <FormItem className="flex items-center space-x-3 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="proof"/>
+                          </FormControl>
+                          <FormLabel className="font-normal">
+                            Proof
+                          </FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-3 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="sim"/>
+                          </FormControl>
+                          <FormLabel className="font-normal">
+                            Sim
+                          </FormLabel>
+                        </FormItem>
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage/>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="chain"
+                render={({field}) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel>Chain</FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex flex-row space-y-1"
+                      >
+                        <FormItem className="flex items-center space-x-3 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="base"/>
+                          </FormControl>
+                          <FormLabel className="font-normal">
+                            Base
+                          </FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-3 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="optimism"/>
+                          </FormControl>
+                          <FormLabel className="font-normal">
+                            Optimism
+                          </FormLabel>
+                        </FormItem>
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage/>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="threshold"
+                render={({field}) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel>Threshold (in seconds)</FormLabel>
+                    <FormControl>
+                      <Input
+                        id="thresholdInput"
+                        type="number"
+                        placeholder="Threshold"
+                        {...field}
+                        onChange={e => field.onChange(Number(e.target.value))}
+                        className="px-4 py-2"
+                      />
+                    </FormControl>
+                    <FormMessage/>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="channelId"
+                render={({field}) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel>Channel Id</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Channel Id" {...field} className=""/>
+                    </FormControl>
+                    <FormMessage/>
+                  </FormItem>
+                )}
+              />
+              <Button type="submit" disabled={addAlertMutation.isLoading} className="w-full">
+                {addAlertMutation.isLoading && (
+                  <ReloadIcon className="mr-2 h-4 w-4 animate-spin"/>
+                )}
+                {addAlertMutation.isLoading ? "Adding" : "Add Alert"}
+              </Button>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
     </>
   );
 }

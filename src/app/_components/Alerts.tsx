@@ -28,24 +28,24 @@ export default function Alerts() {
 
   return (
     <div className="rounded-md mt-10">
-      <Table>
-        <TableHeader>
+      <Table className="border border-black">
+        <TableHeader className="bg-black text-white"> {/* Add background color and text color */}
           <TableRow className="h-12">
-            <TableCell>Channel ID</TableCell>
-            <TableCell>Client Type</TableCell>
-            <TableCell>Chain</TableCell>
-            <TableCell>Threshold (sec)</TableCell>
-            <TableCell>Actions</TableCell>
+            <TableCell className="border border-black font-bold">Channel ID</TableCell>
+            <TableCell className="border border-black font-bold">Client Type</TableCell>
+            <TableCell className="border border-black font-bold">Chain</TableCell>
+            <TableCell className="border border-black font-bold">Threshold (sec)</TableCell>
+            <TableCell className="border border-black font-bold">Actions</TableCell>
           </TableRow>
         </TableHeader>
         <TableBody>
           {alerts?.map((alert) => (
             <TableRow key={alert.id} className="h-12">
-              <TableCell>{alert.channelId}</TableCell>
-              <TableCell>{alert.clientType}</TableCell>
-              <TableCell>{alert.chain}</TableCell>
-              <TableCell>{alert.threshold}</TableCell>
-              <TableCell>
+              <TableCell className="border border-black">{alert.channelId}</TableCell>
+              <TableCell className="border border-black">{alert.clientType}</TableCell>
+              <TableCell className="border border-black">{alert.chain}</TableCell>
+              <TableCell className="border border-black">{alert.threshold}</TableCell>
+              <TableCell className="border border-black">
                 <Button className={"bg-red-500"} onClick={() => handleRemove(alert.id)}>Remove</Button>
               </TableCell>
             </TableRow>
