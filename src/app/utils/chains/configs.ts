@@ -4,10 +4,10 @@ import { env } from "@/env";
 
 export type CHAIN = 'optimism' | 'base';
 
-const opDispatcher = env.OP_DISPATCHER!;
-const baseDispatcher = env.BASE_DISPATCHER!;
-const opDispatcherSimClient = env.OP_DISPATCHER_SIM!;
-const baseDispatcherSimClient = env.BASE_DISPATCHER_SIM!;
+const opDispatcher = env.OP_DISPATCHER;
+const baseDispatcher = env.BASE_DISPATCHER;
+const opDispatcherSimClient = env.OP_DISPATCHER_SIM;
+const baseDispatcherSimClient = env.BASE_DISPATCHER_SIM;
 
 export const CHAIN_CONFIGS: {
   [key in CHAIN]: Chain;
