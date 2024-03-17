@@ -39,7 +39,7 @@ To run PolyLens locally, follow these steps:
 7. Additionally, a cron service needs to be set up to periodically trigger an api to send emails.
 Locally it can be done using a simple curl command:
 ```bash
-curl http://localhost:3000/api/trpc/alert.sendEmailAlerts?batch=1&input={} 
+curl http://localhost:3000/api/alerts 
 ```
 
 ## Resources Used
@@ -50,6 +50,7 @@ curl http://localhost:3000/api/trpc/alert.sendEmailAlerts?batch=1&input={}
 - **Tailwind CSS**: Utility-first CSS framework for rapid UI development.
 - **Recharts**: Composable charting library built on React components.
 - **Mailgun**: Email service for sending latency alerts.
+- **Vercel**: Cloud platform for Next.js sites and serverless functions.
 
 ## Challenges Faced
 During the development of PolyLens, we encountered a few challenges:
