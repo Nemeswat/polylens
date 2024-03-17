@@ -15,11 +15,6 @@ export async function GET(request: Request) {
   return Response.json({})
 }
 
-export async function POST(request: Request) {
-  await sendEmailAlerts({db});
-  return Response.json({})
-}
-
 async function sendEmail(email: string, subject: string, message: string) {
   const mailgun = new Mailgun(FormData);
   const mg = mailgun.client({username: 'api', key: env.MAILGUN_API_KEY});
@@ -63,6 +58,7 @@ async function sendEmailAlerts(ctx: { db: PrismaClient }) {
     if (!processedBlock || latestBlockNumber > processedBlock.blockNumber) {
       console.log('Fetching packets for', channelId, chain, clientType);
       const packets = await getPackets(ctx, channelId!, chain!, clientType!, processedBlock?.blockNumber, latestBlockNumber);
+      console.log(`Found ${packets.length} packets`)
 
       const alertsToSend: Record<string, { threshold: number, packets: Packet[], alertIds: Set<number> }> = {};
 
