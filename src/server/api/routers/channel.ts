@@ -11,6 +11,7 @@ import { PrismaClient } from "@prisma/client";
 export async function getPackets(ctx: {
   db: PrismaClient
 }, channelId: string, chain: string, clientType: string, fromBlock?: ethers.BlockTag, toBlock?: ethers.BlockTag) {
+  console.log(`Fetching packets for channel ${channelId} on chain ${chain} from block ${fromBlock} to block ${toBlock}`);
   const chainId = chain as CHAIN;
   const dispatcherAddress = clientType == "sim" ? CHAIN_CONFIGS[chainId].simDispatcher : CHAIN_CONFIGS[chainId].proofDispatcher;
   const provider = new JsonRpcProvider(CHAIN_CONFIGS[chainId].rpc, CHAIN_CONFIGS[chainId].id);

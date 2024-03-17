@@ -10,6 +10,17 @@ import { env } from "@/env";
 
 export const dynamic = 'force-dynamic' // defaults to auto
 
+type Alert = {
+  threshold: number;
+  userEmail: string;
+  chain: string;
+  channelId: string;
+  clientType: string;
+  id: number;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 export async function GET(request: Request) {
   await sendEmailAlerts({db});
   return Response.json({})
@@ -56,15 +67,33 @@ async function sendEmailAlerts(ctx: { db: PrismaClient }) {
     }
 
     if (!processedBlock || latestBlockNumber > processedBlock.blockNumber) {
-      console.log('Fetching packets for', channelId, chain, clientType);
-      const packets = await getPackets(ctx, channelId!, chain!, clientType!, processedBlock?.blockNumber, latestBlockNumber);
+      const blockTime = CHAIN_CONFIGS[chain as CHAIN].blockTime;
+      const processedBlockNumber = processedBlock?.blockNumber ?? latestBlockNumber - 1n;
+      let fromBlock = latestBlockNumber - BigInt(3 * 3600 / blockTime);
+      fromBlock = fromBlock < processedBlockNumber ? fromBlock : processedBlockNumber;
+
+      const packets = await getPackets(ctx, channelId!, chain!, clientType!, fromBlock, latestBlockNumber);
       console.log(`Found ${packets.length} packets`)
 
       const alertsToSend: Record<string, { threshold: number, packets: Packet[], alertIds: Set<number> }> = {};
 
       for (const alert of alertsGroup) {
         for (const packet of packets) {
-          if (packet.endTime !== 0 && (packet.endTime - packet.createTime) > alert.threshold) {
+          const existingAlert = await ctx.db.sentAlert.findFirst({
+            where: {
+              alertId: alert.id,
+              sequence: String(packet.sequence),
+              alert: {
+                updatedAt: {lt: new Date(packet.createTime * 1000)}
+              }
+            }
+          });
+
+          if (existingAlert) {
+            continue;
+          }
+
+          if (packet.endTime !== 0 && (packet.endTime - packet.createTime) > alert.threshold && new Date(packet.createTime * 1000) > alert.updatedAt) {
             console.log('Packet', packet.sequence, 'on channel', channelId, 'on chain', chain, 'exceeded the threshold of', alert.threshold, 'seconds');
             const userEmail = alert.userEmail;
             if (!alertsToSend[userEmail]) {
@@ -86,21 +115,25 @@ async function sendEmailAlerts(ctx: { db: PrismaClient }) {
         await sendEmail(userEmail, `Alert for Polymer channel ${channelId}`, emailBody);
 
         for (const alertId of alertIds) {
-          await ctx.db.sentAlert.create({
-            data: {
-              alertId,
-              recipient: userEmail,
-            },
-          });
+          for (const packet of packets) {
+            await ctx.db.sentAlert.create({
+              data: {
+                alertId,
+                recipient: userEmail,
+                sequence: String(packet.sequence),
+              },
+            });
+          }
         }
       }
 
-      await updateProcessedBlock(ctx, chain!, latestBlockNumber);
+      await updateProcessedBlock(ctx, chain!, fromBlock);
     } else {
       console.log('No new blocks to process for', chain);
     }
   }
 }
+
 
 function groupAlerts(alerts: Alert[]): Record<string, Alert[]> {
   return alerts.reduce((acc, alert) => {
@@ -113,16 +146,6 @@ function groupAlerts(alerts: Alert[]): Record<string, Alert[]> {
     return acc;
   }, {} as Record<string, Alert[]>);
 }
-
-
-type Alert = {
-  threshold: number;
-  userEmail: string;
-  chain: string;
-  channelId: string;
-  clientType: string;
-  id: number;
-};
 
 
 async function updateProcessedBlock(ctx: { db: PrismaClient }, chain: string, latestBlockNumber: bigint) {
