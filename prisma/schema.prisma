@@ -31,6 +31,7 @@ model SentAlert {
   alertId   Int
   sentAt    DateTime @default(now())
   recipient String // Assuming you want to track who the alert was sent to
+  sequence  String
 
   alert Alert @relation(fields: [alertId], references: [id])
 
