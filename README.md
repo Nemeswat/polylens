@@ -34,6 +34,14 @@ To run PolyLens locally, follow these steps:
 
 5. Open your browser and navigate to `http://localhost:3000`.
 
+6. For email alerts to work, you need to set up a domain in Mailgun and verify it via DNS records.
+
+7. Additionally, a cron service needs to be set up to periodically trigger an api to send emails.
+Locally it can be done using a simple curl command:
+```bash
+curl http://localhost:3000/api/trpc/alert.sendEmailAlerts?batch=1&input={} 
+```
+
 ## Resources Used
 - **Next.js**: React framework for building server-side rendered and static web applications.
 - **tRPC**: Library for building typesafe APIs with TypeScript.
