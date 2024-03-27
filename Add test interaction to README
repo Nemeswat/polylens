@@ -1,0 +1,11 @@
+Providing more fine-grained control over alerts to cater to specific user requirements.
+
+## License
+PolyLens is released under the [MIT License](https://opensource.org/licenses/MIT).
+PolyLens is released under the [MIT License](https://opensource.org/licenses/MIT).
+
+## Proof of testnet interaction
+Thank you to the creators of [IBC App Solidity Template](https://github.com/open-ibc/ibc-app-solidity-template/tree/main?tab=readme-ov-file) for making it easy to send packets thru the testnet!
+- [Send](https://optimism-sepolia.blockscout.com/tx/0xa90a9620ab16058312efa339b8d2d4b4d679d5afcf95cbde247f8540eeabed31)
+- [Recv](https://base-sepolia.blockscout.com/tx/0xe58155076439d9a9e69cf252e4f58c32c5397dccd0235598e1c78c736f06de25)
+- [Ack](https://optimism-sepolia.blockscout.com/tx/0x63f262afb792fa09d28f4b0562339b4a447e7f138b3fd9d3f0c4351b32d59f01)
